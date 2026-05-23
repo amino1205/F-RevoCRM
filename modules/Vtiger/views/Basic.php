@@ -75,6 +75,14 @@ abstract class Vtiger_Basic_View extends Vtiger_Footer_View {
 			$selectedMenuCategoryLabel = vtranslate($selectedModule, $selectedModule);
 		}
 
+        if(file_exists("config.customize.php")) {
+            include_once 'config.customize.php';
+        }
+        global $customizeconfig;
+        $edit_reference_filter = $customizeconfig["edit_reference_filter"];
+        $edit_reference_auto_set = $customizeconfig["edit_reference_auto_set"];
+        $viewer->assign('EDIT_REFERENCE_FILTER', Zend_Json::encode($edit_reference_filter));
+        $viewer->assign('EDIT_REFERENCE_AUTO_SET', Zend_Json::encode($edit_reference_auto_set));
 		$viewer->assign('SELECTED_MENU_CATEGORY',$selectedModuleMenuCategory);
 		$viewer->assign('SELECTED_MENU_CATEGORY_LABEL', $selectedMenuCategoryLabel);
 		$viewer->assign('SELECTED_CATEGORY_MENU_LIST',$menuGroupedByParent[$selectedModuleMenuCategory]);

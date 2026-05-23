@@ -91,7 +91,7 @@ class Products_Module_Model extends Vtiger_Module_Model {
 	 * @param <String> $parentModule - parent module name
 	 * @return <Array of Vtiger_Record_Model>
 	 */
-	public function searchRecord($searchValue, $parentId=false, $parentModule=false, $relatedModule=false) {
+	public function searchRecord($searchValue, $parentId=false, $parentModule=false, $relatedModule=false, $search_params = '') {
 		if(!empty($searchValue) && empty($parentId) && empty($parentModule) && (in_array($relatedModule, getInventoryModules()))) {
 			$matchingRecords = Products_Record_Model::getSearchResult($searchValue, $this->getName());
 		}else {

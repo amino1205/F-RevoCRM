@@ -316,7 +316,7 @@ class Vtiger_Record_Model extends Vtiger_Base_Model {
 	 * @param <String> $searchKey
 	 * @return <Array> - List of Vtiger_Record_Model or Module Specific Record Model instances
 	 */
-	public static function getSearchResult($searchKey, $module=false) {
+	public static function getSearchResult($searchKey, $module=false, $pageLimit = 100, $search_params = '') {
 		$db = PearDatabase::getInstance();
 
 		$query = 'SELECT label, crmid, setype, createdtime FROM vtiger_crmentity WHERE label LIKE ? AND vtiger_crmentity.deleted = 0';
@@ -331,6 +331,20 @@ class Vtiger_Record_Model extends Vtiger_Base_Model {
 
 		//Remove the ordering for now to improve the speed
 		$query .= ' ORDER BY modifiedtime DESC';
+
+        if ( !empty($search_params) && $module !== false ) {
+            $query = 'SELECT vtiger_crmentity.label, vtiger_crmentity.crmid, vtiger_crmentity.setype, vtiger_crmentity.createdtime ';
+            $currentUser = vglobal('current_user');
+            $queryGenerator = new EnhancedQueryGenerator($module, $currentUser);
+            $moduleModel = Vtiger_Module_Model::getInstance($module);
+            $transformedSearchParams = Vtiger_Util_Helper::transferListSearchParamsToFilterCondition($search_params, $moduleModel);
+            $queryGenerator->parseAdvFilterList($transformedSearchParams, "");
+            $query .= $queryGenerator->getFromClause();
+            $query .= $queryGenerator->getWhereClause();
+            $query .= " AND vtiger_crmentity.label LIKE ? ";
+            $params = array("%$searchKey%");
+            $query .= ' ORDER BY vtiger_crmentity.modifiedtime DESC';
+        }
 
 		$result = $db->pquery($query, $params);
 		$noOfRows = $db->num_rows($result);

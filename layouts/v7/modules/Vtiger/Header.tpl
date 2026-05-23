@@ -31,8 +31,10 @@
         <link type='text/css' rel='stylesheet' href='{vresource_url('resources/styles.css')}'>
         
         <input type="hidden" id="inventoryModules" value={ZEND_JSON::encode($INVENTORY_MODULES)}>
-        
-        {assign var=V7_THEME_PATH value=Vtiger_Theme::getv7AppStylePath($SELECTED_MENU_CATEGORY)}
+		<input type="hidden" name="edit_reference_filter" value="{Vtiger_Util_Helper::toSafeHTML($EDIT_REFERENCE_FILTER)}" />
+		<input type="hidden" name="edit_reference_auto_set" value="{Vtiger_Util_Helper::toSafeHTML($EDIT_REFERENCE_AUTO_SET)}" />
+
+		{assign var=V7_THEME_PATH value=Vtiger_Theme::getv7AppStylePath($SELECTED_MENU_CATEGORY)}
         {if strpos($V7_THEME_PATH,".less")!== false}
             <link type="text/css" rel="stylesheet/less" href="{vresource_url($V7_THEME_PATH)}" media="screen" />
         {else}

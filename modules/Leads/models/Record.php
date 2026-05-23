@@ -22,7 +22,7 @@ class Leads_Record_Model extends Vtiger_Record_Model {
 	 * @param <String> $searchKey
 	 * @return <Array> - List of Vtiger_Record_Model or Module Specific Record Model instances
 	 */
-	public static function getSearchResult($searchKey, $module=false) {
+	public static function getSearchResult($searchKey, $module=false, $pageLimit = 100, $search_params = '') {
 		$db = PearDatabase::getInstance();
 
         $leadsModuleModel = Vtiger_Module_Model::getInstance('Leads');

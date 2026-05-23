@@ -730,6 +730,27 @@ Vtiger.Class('Vtiger_Index_Js', {
 			jQuery('#webcomponents-quickcreate-container').empty();
 			jQuery('body > .quickcreate-dialog-portal').remove();
 			app.helper.showProgress();
+
+ 			// クイック作成時の項目自動セット対応
+			if (typeof params.displayParams !== 'undefined') {
+				if (typeof params.data === 'undefined') {
+					params.data = {};
+				}
+				var moduleName = params.displayParams.src_module;
+				var fieldName = params.displayParams.src_field;
+	 			var add_search_params = thisInstance.getAddReferenceSearchParams(moduleName, fieldName);
+				 if (add_search_params) {
+					 $.each(JSON.parse(add_search_params)[0], function(index, search_data) {
+						 var search_field = search_data[0];
+						 var search_record = search_data[3];
+						 params.data[search_field] = search_record;
+					 });
+				 }
+			} else {
+				// 関連タブからの作成であることを示すフラグをセット
+				params.data['is_relation_tabs'] = true;
+			}
+
 			thisInstance.getQuickCreateForm(quickCreateUrl,quickCreateModuleName,params).then(function(data){
 				app.helper.hideProgress();
 				var callbackparams = {
@@ -1144,7 +1165,10 @@ Vtiger.Class('Vtiger_Index_Js', {
 		container.on('click','.createReferenceRecord', function(e) {
 			var element = jQuery(e.currentTarget);
 			var controlElementTd = thisInstance.getParentElement(element);
-			thisInstance.referenceCreateHandler(controlElementTd);
+
+			var parentElem = thisInstance.getParentElement(jQuery(e.target));
+			var displayParams = thisInstance.getPopUpParams(parentElem);
+			thisInstance.referenceCreateHandler(controlElementTd, displayParams);
 		});
 	},
 
@@ -1183,6 +1207,17 @@ Vtiger.Class('Vtiger_Index_Js', {
 
 		var params = this.getPopUpParams(parentElem);
 		params.view = 'Popup';
+
+		// 関連一覧からのクイック編集対応
+		if ($('[name="module"]').val() !== undefined && params.src_module != $('[name="module"]').val()) {
+			params.src_module = $('[name="module"]').val();
+		}
+
+		// コンフィグを元に追加パラメータ
+		var add_search_params = this.getAddReferenceSearchParams(params.src_module, params.src_field);
+		if ( add_search_params ) {
+			params.search_params = add_search_params;
+		}
 
 		var isMultiple = false;
 		if(params.multi_select) {
@@ -1464,7 +1499,7 @@ Vtiger.Class('Vtiger_Index_Js', {
 	/*
 	 * Function to show quick create modal while creating from reference field
 	 */
-	referenceCreateHandler : function(container) {
+	referenceCreateHandler : function(container, displayParams={}) {
 		var thisInstance = this;
 		var postQuickCreateSave = function(data) {
 			var module = thisInstance.getReferencedModuleName(container);
@@ -1491,7 +1526,7 @@ Vtiger.Class('Vtiger_Index_Js', {
 			}
 			app.helper.showAlertNotification(notificationOptions);
 		}
-		quickCreateNode.trigger('click',[{'callbackFunction':postQuickCreateSave}]);
+		quickCreateNode.trigger('click',[{'callbackFunction':postQuickCreateSave, 'displayParams':displayParams}]);
 	},
 
 	/**
@@ -1504,7 +1539,93 @@ Vtiger.Class('Vtiger_Index_Js', {
 			jQuery('input[name="popupReferenceModule"]',tdElement) : jQuery('input.popupReferenceModule',tdElement);
 		var searchModule = referenceModuleElement.val();
 		params.search_module = searchModule;
+
+		// コンフィグを元に関連項目テキスト検索時の初期値確認
+		var fieldname = element.attr('name');
+		fieldname = fieldname.replace("_display","");
+		var moduleName = app.getModuleName();
+
+		// 関連一覧からのクイック編集対応
+		if (moduleName != $('[name="module"]').val()) {
+			moduleName = $('[name="module"]').val();
+		}
+
+		var add_search_params = this.getAddReferenceSearchParams(moduleName, fieldname);
+		if ( add_search_params ) {
+			params.add_search_params = add_search_params;
+		}
+
 		return params;
+	},
+
+	/**
+	 * Function to get reference search params
+	 */
+	getAddReferenceSearchParams : function(moduelename, fieldname){
+		// コンフィグを元に関連項目ポップアップの初期値確認
+		var refelence_filterElement = jQuery('[name="edit_reference_filter"]');
+		var add_search_params = "";
+		var viewname = app.getViewName();
+		if(refelence_filterElement.length > 0 && refelence_filterElement.val() ) {
+			var refelence_filter = JSON.parse(refelence_filterElement.val());
+			var serch_param_string = "[[";
+			var serch_param_cnt = 0;
+			for(var i=0;i<refelence_filter.length;i++){
+				if ( refelence_filter[i]["module"] != moduelename ) {
+					continue;
+				}
+				if ( refelence_filter[i]["field"] != fieldname ) {
+					continue;
+				}
+				var param = refelence_filter[i]["param"];
+				for(var j=0;j<param.length;j++){
+					var srcfield = param[j]["srcfield"];
+					var targetfield = param[j]["targetfield"];
+					var targetmodule = param[j]["targetmodule"];
+					var settargetfield = param[j]["settargetfield"];
+					var filter_param = ''
+					if (viewname == "Detail") {
+						filter_param = $('input[data-name="'+srcfield+'"]').attr("data-value");
+						// 関連一覧からのクイック編集対応
+						if (filter_param === undefined){
+							filter_param = $('input[name="'+srcfield+'"]').val();
+						}
+					} else {
+						filter_param = $('input[name="'+srcfield+'"]').val();
+					}
+					if ( targetmodule && filter_param && filter_param != 0 ) {
+						var record = filter_param;
+						var url = "index.php?action=GetData&source_module="+targetmodule+"&record=" + filter_param;
+						var label = "";
+						jQuery.ajax( { type: 'GET', url: url, async: false} ).then(
+							function (data, error) {
+								if (error == "success" && data.result != undefined) {
+									label = data.result.data[settargetfield];
+								} else {
+									console.log("The record you are trying to view has been deleted.");
+								}
+							}
+						);
+						if ( label ) {
+							filter_param = label;
+						} else {
+							filter_param = "";
+						}
+					}
+					if (filter_param && filter_param != 0) {
+						if ( serch_param_cnt > 0 ) {
+							serch_param_string = serch_param_string + ",";
+						}
+						serch_param_string = serch_param_string + '["'+targetfield+'","e","'+filter_param+'","'+record+'"]';
+						serch_param_cnt++;
+					}
+				}
+			}
+			if (serch_param_string != "[[") {
+				add_search_params = serch_param_string + "]]";
+			}
+		}
+		return add_search_params;
 	},
 
 	searchModuleNames : function(params) {

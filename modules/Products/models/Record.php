@@ -441,7 +441,7 @@ class Products_Record_Model extends Vtiger_Record_Model {
 	 * @param <String> $searchKey
 	 * @return <Array> - List of Vtiger_Record_Model or Module Specific Record Model instances
 	 */
-	public static function getSearchResult($searchKey, $module=false) {
+	public static function getSearchResult($searchKey, $module=false, $pageLimit = 100, $search_params = '') {
 		$db = PearDatabase::getInstance();
 
 		$query = 'SELECT label, crmid, setype, createdtime FROM vtiger_crmentity WHERE label LIKE ? AND vtiger_crmentity.deleted = 0';

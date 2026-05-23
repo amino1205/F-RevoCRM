@@ -351,7 +351,101 @@ Vtiger_Index_Js("Vtiger_Edit_Js",{
         this.registerReferenceCreate(form);
         this.referenceModulePopupRegisterEvent(form);
         this.registerPostReferenceEvent(this.getEditViewContainer());
+        this.registerAutoSetByReference(form);
     },
+
+    registerAutoSetByReference: function(container) {
+        var thisInstance = this;
+        // コンフィグを元に関連項目ポップアップの初期値確認
+        var refelence_auto_setElement = jQuery('[name="edit_reference_auto_set"]');
+        if(refelence_auto_setElement.length <= 0) {
+            return;
+        }
+        if(!refelence_auto_setElement.val()) {
+            return;
+        }
+        var refelence_auto_set = JSON.parse(refelence_auto_setElement.val());
+        var moduelename = app.getModuleName();
+        var argument = Array();
+        for(var i=0;i<refelence_auto_set.length;i++){
+            if ( refelence_auto_set[i]["module"] != moduelename ) {
+                continue;
+            }
+            var fieldname = refelence_auto_set[i]["field"];
+            argument[fieldname] = refelence_auto_set[i]["param"];
+            jQuery('input[name="'+fieldname+'"]', container).on(Vtiger_Edit_Js.referenceSelectionEvent, function(e, data){
+                var temp_param = argument[e.currentTarget.name];
+                if(data) thisInstance.autoSetByReference(data, container,temp_param);
+            });
+        }
+    },
+
+    autoSetByReference: function(data, container, param) {
+        var thisInstance = this;
+        thisInstance.getRecordDetails(data).then(
+            function (data) {
+                for(var i=0;i<param.length;i++){
+                    var response = data;
+                    var srcfieldname = param[i]["srcfield"];
+                    var srcfieldname_display = srcfieldname + "_display";
+                    var targetfieldname = param[i]["targetfield"];
+                    var targetdata =  response['data'][targetfieldname];
+                    var targetmodule = param[i]["targetmodule"];
+                    if ( targetmodule ) {
+                        thisInstance.setDetailRelatedColumns(thisInstance, container, targetmodule, targetdata, srcfieldname_display, srcfieldname);
+                    } else {
+                        jQuery('input[name="' + srcfieldname + '"]', container).val(targetdata);
+                    }
+
+                    // TODO: 自動セットの連動処理は一旦コメント
+                    // セットした項目のデータを取得して再起的にイベント発火
+                    // thisInstance.recursiveAutoSetByReference(container, srcfieldname, targetdata, targetmodule);
+                }
+            },
+            function (error, err) {
+            });
+    },
+
+    setDetailRelatedColumns: function (thisInstance, container, module_name, related_id, column_display, column_hidden){
+        var data = Array();
+        data['source_module'] = module_name;    // モジュールをセット
+        data['record'] = related_id;            // IDをセット
+        var hiddenElement = jQuery('input[name="' + column_hidden + '"]', container);
+        var displayElement = jQuery('input[name="' + column_display + '"]', container);
+        thisInstance.getRecordDetails(data).then(
+            function (ret_data) {
+                var response = ret_data;
+                var column_name = response['data']['label'];
+                // セット
+                hiddenElement.val(related_id);
+                displayElement.val(column_name);
+                displayElement.attr('readonly', true);
+                // 「×」ボタンを表示にする
+                displayElement.parent().find(".clearReferenceSelection").removeClass('hide');
+            },
+            function (error, err) {
+                // クリア
+                hiddenElement.val("");
+                displayElement.val("");
+                displayElement.attr('readonly', false);
+                displayElement.attr('disabled', false);
+                // 「×」ボタンを非表示にする
+                if(displayElement.parent().find(".clearReferenceSelection").hasClass() === false){
+                    displayElement.parent().find(".clearReferenceSelection").addClass('hide');
+                }
+            }
+        );
+    },
+
+    recursiveAutoSetByReference : function(container, fieldName, recordId, moduleName){
+        // 自動セット項目を再帰的に実行（referenceSelectionEventの強制発火）
+        var data = {
+            'record': recordId,
+            'source_module': moduleName,
+        };
+        jQuery('input[name="'+fieldName+'"]', container).trigger(Vtiger_Edit_Js.referenceSelectionEvent, data);
+    },
+
     proceedRegisterEvents : function(){
 		if(jQuery('.recordEditView').length > 0){
 			return true;

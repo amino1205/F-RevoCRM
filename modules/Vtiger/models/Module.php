@@ -1474,10 +1474,10 @@ class Vtiger_Module_Model extends Vtiger_Module {
 	 * @param <String> $parentModule - parent module name
 	 * @return <Array of Vtiger_Record_Model>
 	 */
-	public function searchRecord($searchValue, $parentId=false, $parentModule=false, $relatedModule=false) {
+	public function searchRecord($searchValue, $parentId=false, $parentModule=false, $relatedModule=false, $search_params = '') {
 			$searchFields = array('crmid','label','setype');
 		if(!empty($searchValue) && empty($parentId) && empty($parentModule)) {
-			$matchingRecords = Vtiger_Record_Model::getSearchResult($searchValue, $this->getName());
+            $matchingRecords = Vtiger_Record_Model::getSearchResult($searchValue, $this->getName(),100,$search_params);
 		} else if($parentId && $parentModule) {
 			$db = PearDatabase::getInstance();
 			$result = $db->pquery($this->getSearchRecordsQuery($searchValue,$searchFields, $parentId, $parentModule), array());
