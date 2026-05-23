@@ -17,13 +17,25 @@ class Settings_LayoutEditor_Index_View extends Settings_Vtiger_Index_View {
 		$this->exposeMethod('showRelatedListLayout');
 		$this->exposeMethod('showFieldEdit');
 		$this->exposeMethod('showDuplicationHandling');
+		$this->exposeMethod('showReferenceRule');
 	}
 
 	public function process(Vtiger_Request $request) {
 		$mode = $request->getMode();
+
+		// Issue #1621: 関連項目設定タブはマイグレーション実行後にのみ表示する
+		$referenceRuleAvailable = Settings_LayoutEditor_ReferenceRule_Model::tablesExist();
+
+		// テーブル未作成時に ?mode=showReferenceRule で直接アクセスされた場合は
+		// デフォルトタブにフォールバックする
+		if ($mode === 'showReferenceRule' && !$referenceRuleAvailable) {
+			$mode = null;
+		}
+
 		switch($mode) {
 			case 'showRelatedListLayout'	:	$selectedTab = 'relatedListTab';	break;
 			case 'showDuplicationHandling'	:	$selectedTab = 'duplicationTab';	break;
+			case 'showReferenceRule'		:	$selectedTab = 'referenceRuleTab';	break;
 			default							:	$selectedTab = 'detailViewTab';
 												if (!$mode) {
 													$mode = 'showFieldLayout';
@@ -41,6 +53,7 @@ class Settings_LayoutEditor_Index_View extends Settings_Vtiger_Index_View {
 		$viewer->assign('SELECTED_TAB', $selectedTab);
 		$viewer->assign('SUPPORTED_MODULES', $supportedModulesList);
 		$viewer->assign('REQUEST_INSTANCE', $request);
+		$viewer->assign('REFERENCE_RULE_AVAILABLE', $referenceRuleAvailable);
 
 		if ($sourceModule) {
 			$viewer->assign('SELECTED_MODULE_NAME', $sourceModule);
@@ -249,11 +262,81 @@ class Settings_LayoutEditor_Index_View extends Settings_Vtiger_Index_View {
 		$jsFileNames = array(
 			'~libraries/garand-sticky/jquery.sticky.js',
 			'~/libraries/jquery/bootstrapswitch/js/bootstrap-switch.min.js',
+			'modules.Settings.LayoutEditor.resources.ReferenceRule',
 		);
 
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
 		$headerScriptInstances = array_merge($headerScriptInstances, $jsScriptInstances);
 		return $headerScriptInstances;
+	}
+
+	/**
+	 * Issue #1621: 関連項目フィルタ／項目自動セットのルールを GUI で編集するタブを表示する。
+	 *
+	 * @param Vtiger_Request $request
+	 */
+	public function showReferenceRule(Vtiger_Request $request) {
+		$sourceModule = $request->get('sourceModule');
+		// getSupportedModules() は [moduleName => translatedLabel] を返す。
+		// array_flip 後は [translatedLabel => moduleName] となり、
+		// ksort は翻訳ラベル順で並ぶ（モジュール選択プルダウンの表示順用）。
+		$supportedModulesList = Settings_LayoutEditor_Module_Model::getSupportedModules();
+		$supportedModulesList = array_flip($supportedModulesList);
+		ksort($supportedModulesList);
+
+		// sourceModule が空、または LayoutEditor の対象外モジュール名が指定された場合は
+		// 先頭の対象モジュールにフォールバックする（getInstanceByName が false を返すと
+		// 親の get_object_vars(false) で fatal となるため事前に弾く）。
+		// flip 後の配列では値がモジュール名のため、in_array は values で照合し、
+		// reset() も values の先頭（最初のモジュール名）を返す。
+		if (empty($sourceModule) || !in_array($sourceModule, $supportedModulesList, true)) {
+			$sourceModule = reset($supportedModulesList);
+		}
+
+		$moduleModel = Settings_LayoutEditor_Module_Model::getInstanceByName($sourceModule);
+
+		// 対象モジュールの reference 型フィールド一覧
+		// - アクティブのみ
+		// - 単一参照のみ（複数参照（uitype 10 等）は本機能では非対応のため UI に出さない）
+		$referenceFields = array();
+		$rawReferenceFields = $moduleModel->getFieldsByType('reference');
+		foreach ($rawReferenceFields as $fieldModel) {
+			if (!$fieldModel->isActiveField()) {
+				continue;
+			}
+			$referenceList = $fieldModel->getReferenceList();
+			if (!is_array($referenceList) || count($referenceList) !== 1) {
+				continue;
+			}
+			$referenceFields[$fieldModel->getName()] = $fieldModel;
+		}
+
+		// 既存ルール
+		$rules = Settings_LayoutEditor_ReferenceRule_Model::loadForSettings($sourceModule);
+
+		// プルダウン用メタデータ
+		$fieldsMeta = Settings_LayoutEditor_ReferenceRule_Model::buildFieldsMeta($sourceModule);
+
+		$qualifiedModule = $request->getModule(false);
+		$viewer = $this->getViewer($request);
+		// Index.tpl 用の共通アサイン（フルページ描画時に必要）
+		$viewer->assign('MODE', 'showReferenceRule');
+		$viewer->assign('SELECTED_TAB', 'referenceRuleTab');
+		$viewer->assign('SELECTED_MODULE_NAME', $sourceModule);
+		$viewer->assign('SELECTED_MODULE_MODEL', $moduleModel);
+		$viewer->assign('SUPPORTED_MODULES', $supportedModulesList);
+		$viewer->assign('REQUEST_INSTANCE', $request);
+		// ReferenceRule.tpl 用のアサイン
+		$viewer->assign('REFERENCE_FIELDS', $referenceFields);
+		$viewer->assign('REFERENCE_RULES', $rules);
+		$viewer->assign('FIELDS_META', Zend_Json::encode($fieldsMeta));
+		$viewer->assign('QUALIFIED_MODULE', $qualifiedModule);
+
+		if ($request->isAjax() && !$request->get('showFullContents')) {
+			$viewer->view('ReferenceRule.tpl', $qualifiedModule);
+		} else {
+			$viewer->view('Index.tpl', $qualifiedModule);
+		}
 	}
 
 	/**

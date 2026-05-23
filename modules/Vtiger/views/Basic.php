@@ -75,12 +75,16 @@ abstract class Vtiger_Basic_View extends Vtiger_Footer_View {
 			$selectedMenuCategoryLabel = vtranslate($selectedModule, $selectedModule);
 		}
 
-        if(file_exists("config.customize.php")) {
-            include_once 'config.customize.php';
-        }
-        global $customizeconfig;
-        $edit_reference_filter = $customizeconfig["edit_reference_filter"];
-        $edit_reference_auto_set = $customizeconfig["edit_reference_auto_set"];
+        // Issue #1621: 関連項目フィルタ／自動セットのルール定義は
+        // config.customize.php から vtiger_reference_rule(_section) テーブルへ移行済み。
+        // Settings_LayoutEditor_ReferenceRule_Model は Vtiger_Loader::autoLoad() が
+        // modules/Settings/LayoutEditor/models/ReferenceRule.php を解決するので require 不要。
+        $edit_reference_filter   = Settings_LayoutEditor_ReferenceRule_Model::loadForEditor(
+            Settings_LayoutEditor_ReferenceRule_Model::RULE_TYPE_FILTER
+        );
+        $edit_reference_auto_set = Settings_LayoutEditor_ReferenceRule_Model::loadForEditor(
+            Settings_LayoutEditor_ReferenceRule_Model::RULE_TYPE_AUTO_SET
+        );
         $viewer->assign('EDIT_REFERENCE_FILTER', Zend_Json::encode($edit_reference_filter));
         $viewer->assign('EDIT_REFERENCE_AUTO_SET', Zend_Json::encode($edit_reference_auto_set));
 		$viewer->assign('SELECTED_MENU_CATEGORY',$selectedModuleMenuCategory);

@@ -172,6 +172,25 @@ $languageStrings = array(
 	'LBL_SYNC_TOOLTIP_MESSAGE' => 'Prefer latest record - Most recently modified record data will be retained<br>Prefer internal record - Existing record will be retained as it is<br>Prefer external record - Data from the external application will be copied',
 	'LBL_EDIT_READONLY_DISPLAY' => 'Display read-only fields in edit view',
 	'LBL_EDIT_READONLY_DISPLAY_DETAIL_VIEW' => 'Show read-only fields in the edit view',
+
+	// Issue #1621 reference field filter / auto-set (Smarty vtranslate)
+	'LBL_REFERENCE_RULE'                  => 'Reference Field Rules',
+	'LBL_REFERENCE_RULE_DESCRIPTION'      => 'Configure filtering of candidate records and auto-set behavior for reference fields.',
+	'LBL_REFERENCE_RULE_NO_FIELDS'        => 'This module has no reference type fields.',
+	'LBL_REFERENCE_RULE_FILTER_SECTION'   => 'Search Filter',
+	'LBL_REFERENCE_RULE_FILTER_DESC'      => 'Filter candidate records based on values selected in other fields of the current form.',
+	'LBL_REFERENCE_RULE_AUTO_SET_SECTION' => 'Auto Set',
+	'LBL_REFERENCE_RULE_AUTO_SET_DESC'    => 'Automatically populate other fields when this reference field is selected.',
+	'LBL_REFERENCE_RULE_NO_RULES'         => 'No rules configured. Click "+ Add Rule" to add one.',
+	'LBL_REFERENCE_RULE_ADD_RULE'         => '+ Add Rule',
+	'LBL_REFERENCE_RULE_SRCFIELD'         => 'Source field (this form)',
+	'LBL_REFERENCE_RULE_TARGETFIELD'      => 'Target field (referenced record)',
+	'LBL_REFERENCE_RULE_STATUS'           => 'Status',
+	'LBL_REFERENCE_RULE_BOTH'             => 'Filter & Auto Set enabled',
+	'LBL_REFERENCE_RULE_AUTO_SET_ONLY'    => 'Auto Set only',
+	'LBL_REFERENCE_RULE_FILTER_ONLY'      => 'Filter only',
+	'LBL_REFERENCE_RULE_UNSET'            => 'Not configured',
+	'LBL_REFERENCE_TARGET_MODULE'         => 'Reference target module',
 );
 
 $jsLanguageStrings = array(
@@ -236,4 +255,8 @@ $jsLanguageStrings = array(
 	'JS_DUPLICATE_HANDLING_SUCCESS_MESSAGE' => 'Successfully updated to consider selected fields in duplicates prevention',
 	'JS_DUPLICATE_HANDLING_FAILURE_MESSAGE' => 'Failed to consider selected fields in duplicates prevention',
 	'JS_DUPLICATE_CHECK_DISABLED' => 'Duplicate check is disabled',
+
+	// Issue #1621 reference field filter / auto-set (app.vtranslate)
+	'JS_REFERENCE_RULE_SAVED'             => 'Reference field rules have been saved',
+	'JS_REFERENCE_RULE_DUPLICATE'         => 'The same combination is already added',
 );

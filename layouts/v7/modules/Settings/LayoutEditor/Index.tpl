@@ -45,6 +45,10 @@
 					<li class="{if $SELECTED_TAB eq 'detailViewTab'}active {/if}detailViewTab"><a data-toggle="tab" href="#detailViewLayout" data-url="{$URL}" data-mode="showFieldLayout"><strong>{vtranslate('LBL_DETAILVIEW_LAYOUT', $QUALIFIED_MODULE)}</strong></a></li>
 					<li class="{if $SELECTED_TAB eq 'relatedListTab'}active {/if}relatedListTab"><a data-toggle="tab" href="#relatedTabOrder" data-url="{$URL}" data-mode="showRelatedListLayout"><strong>{vtranslate('LBL_RELATION_SHIPS', $QUALIFIED_MODULE)}</strong></a></li>
 					<li class="{if $SELECTED_TAB eq 'duplicationTab'}active {/if}duplicationTab"><a data-toggle="tab" href="#duplicationContainer" data-url="{$URL}" data-mode="showDuplicationHandling"><strong>{vtranslate('LBL_DUPLICATE_HANDLING', $QUALIFIED_MODULE)}</strong></a></li>
+					{* Issue #1621: マイグレーション (vtiger_reference_rule(_section) テーブル作成) 実行後のみタブを表示 *}
+					{if $REFERENCE_RULE_AVAILABLE}
+						<li class="{if $SELECTED_TAB eq 'referenceRuleTab'}active {/if}referenceRuleTab"><a data-toggle="tab" href="#referenceRuleContainer" data-url="{$URL}" data-mode="showReferenceRule"><strong>{vtranslate('LBL_REFERENCE_RULE', $QUALIFIED_MODULE)}</strong></a></li>
+					{/if}
 				</ul>
 				<div class="tab-content layoutContent themeTableColor overflowVisible">
 					<div class="tab-pane{if $SELECTED_TAB eq 'detailViewTab'} active{/if}" id="detailViewLayout">
@@ -62,6 +66,13 @@
 							{include file=vtemplate_path('DuplicateHandling.tpl', $QUALIFIED_MODULE)}
 						{/if}
 					</div>
+					{if $REFERENCE_RULE_AVAILABLE}
+						<div class="tab-pane{if $SELECTED_TAB eq 'referenceRuleTab'} active{/if}" id="referenceRuleContainer">
+							{if $SELECTED_TAB eq 'referenceRuleTab'}
+								{include file=vtemplate_path('ReferenceRule.tpl', $QUALIFIED_MODULE)}
+							{/if}
+						</div>
+					{/if}
 				</div>
 			</div>
 		{/if}

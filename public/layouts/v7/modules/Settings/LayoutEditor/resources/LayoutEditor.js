@@ -2362,6 +2362,56 @@ Vtiger.Class('Settings_LayoutEditor_Js', {
 		}
 	},
 	/**
+	 * Issue #1621 関連項目設定タブのクリックハンドラ登録
+	 * 既存タブ (triggerRelatedModulesTabClickEvent / triggerDuplicationTabClickEvent) と
+	 * 同じパターン: タブクリックで pjax コンテンツロード + .selectedMode 更新
+	 */
+	triggerReferenceRuleTabClickEvent: function () {
+		var thisInstance = this;
+		var contents = jQuery('#layoutEditorContainer').find('.contents');
+		var referenceRuleContainer = contents.find('#referenceRuleContainer');
+		var referenceRuleTab = contents.find('.referenceRuleTab');
+
+		referenceRuleTab.click(function (e) {
+			thisInstance.showReferenceRuleUI(referenceRuleContainer);
+			var mode = jQuery(e.currentTarget).find('a').data('mode');
+			jQuery('.selectedMode').val(mode);
+			jQuery("div[name='editReadonlyDisplayDiv']").hide();
+		});
+	},
+	/**
+	 * Issue #1621 関連項目設定タブのコンテンツを pjax で取得して描画する。
+	 * 描画後、ReferenceRule.js 内で定義されたクラスをインスタンス化して内部イベントを登録する。
+	 */
+	showReferenceRuleUI: function (referenceRuleContainer, extraParams) {
+		var thisInstance = this;
+		if (typeof extraParams == "undefined") {
+			extraParams = {};
+		}
+		var params = {};
+		params['module'] = thisInstance.getModuleName();
+		params['parent'] = app.getParentModuleName();
+		params['sourceModule'] = jQuery('#selectedModuleName').val();
+		params['view'] = 'Index';
+		params['mode'] = 'showReferenceRule';
+		params['originModule'] = app.getModuleName();
+		params = jQuery.extend(params, extraParams);
+		app.helper.showProgress();
+
+		app.request.pjax({'data': params}).then(
+			function (err, data) {
+				app.helper.hideProgress();
+				if (err === null) {
+					referenceRuleContainer.html(data);
+					if (typeof Settings_LayoutEditor_ReferenceRule_Js !== 'undefined'
+							&& referenceRuleContainer.find('.referenceRuleContent').length > 0) {
+						var refRuleInstance = new Settings_LayoutEditor_ReferenceRule_Js();
+						refRuleInstance.registerEvents();
+					}
+				}
+			});
+	},
+	/**
 	 * register events for layout editor
 	 */
 	registerEvents: function () {
@@ -2370,6 +2420,7 @@ Vtiger.Class('Settings_LayoutEditor_Js', {
 		thisInstance.triggerFieldListTabClickEvent();
 		thisInstance.triggerRelatedModulesTabClickEvent();
 		thisInstance.triggerDuplicationTabClickEvent();
+		thisInstance.triggerReferenceRuleTabClickEvent();
 		thisInstance.adjustFieldLabelWidth();
 
 		var selectedTab = jQuery('.selectedTab').val();

@@ -172,6 +172,25 @@ $languageStrings = array(
 	'LBL_SYNC_TOOLTIP_MESSAGE' => '最新のレコードを優先 - 最近変更されたレコードが保持されます<br>F-RevoCRMのレコードを優先 - 既存のレコードがそのまま保持されます<br>外部アプリケーションのレコードを優先 - 外部アプリケーションからのデータがコピーされます',
 	'LBL_EDIT_READONLY_DISPLAY' => '編集画面に読み取り専用項目の表示',
 	'LBL_EDIT_READONLY_DISPLAY_DETAIL_VIEW' => '編集画面において、読み取り専用項目を表示します',
+
+	// Issue #1621 関連項目フィルタ／自動セット (Smarty vtranslate 用)
+	'LBL_REFERENCE_RULE'                  => '関連項目設定',
+	'LBL_REFERENCE_RULE_DESCRIPTION'      => '関連項目フィールド選択時に表示する候補のフィルタや、選択後に他項目へ値を自動セットする動作を設定します。',
+	'LBL_REFERENCE_RULE_NO_FIELDS'        => 'このモジュールには関連項目（reference 型）フィールドがありません。',
+	'LBL_REFERENCE_RULE_FILTER_SECTION'   => '検索フィルタ',
+	'LBL_REFERENCE_RULE_FILTER_DESC'      => 'フォーム上で選択済みの項目に応じて、候補レコードを絞り込みます。',
+	'LBL_REFERENCE_RULE_AUTO_SET_SECTION' => '項目自動セット',
+	'LBL_REFERENCE_RULE_AUTO_SET_DESC'    => 'この関連項目を選択した瞬間、関連する他項目へ値を自動入力します。',
+	'LBL_REFERENCE_RULE_NO_RULES'         => 'ルールが設定されていません。「+ルールを追加」から追加してください。',
+	'LBL_REFERENCE_RULE_ADD_RULE'         => 'ルールを追加',
+	'LBL_REFERENCE_RULE_SRCFIELD'         => 'このフォーム側の項目',
+	'LBL_REFERENCE_RULE_TARGETFIELD'      => '参照先側の項目',
+	'LBL_REFERENCE_RULE_STATUS'           => 'ステータス',
+	'LBL_REFERENCE_RULE_BOTH'             => 'フィルタ／自動セット 有効',
+	'LBL_REFERENCE_RULE_AUTO_SET_ONLY'    => '自動セットのみ有効',
+	'LBL_REFERENCE_RULE_FILTER_ONLY'      => 'フィルタのみ有効',
+	'LBL_REFERENCE_RULE_UNSET'            => '未設定',
+	'LBL_REFERENCE_TARGET_MODULE'         => '参照先モジュール',
 );
 
 $jsLanguageStrings = array(
@@ -236,4 +255,8 @@ $jsLanguageStrings = array(
 	'JS_DUPLICATE_HANDLING_SUCCESS_MESSAGE' => '選択した項目を重複チェックに設定しました',
 	'JS_DUPLICATE_HANDLING_FAILURE_MESSAGE' => '選択した項目を重複チェックに設定できませんでした',
 	'JS_DUPLICATE_CHECK_DISABLED' => '重複チェックを無効にしました',
+
+	// Issue #1621 関連項目フィルタ／自動セット (app.vtranslate 用)
+	'JS_REFERENCE_RULE_SAVED'             => '関連項目設定を保存しました',
+	'JS_REFERENCE_RULE_DUPLICATE'         => '同じ組み合わせのルールが既に追加されています',
 );
