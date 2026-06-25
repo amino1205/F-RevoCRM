@@ -1580,11 +1580,17 @@ Vtiger.Class('Vtiger_Index_Js', {
 				var param = refelence_filter[i]["param"];
 				for(var j=0;j<param.length;j++){
 					var srcfield = param[j]["srcfield"];
+					var srcfield_type = param[j]["srcfield_type"]; // 'field' | 'fixed_value'
+					var fixed_value = param[j]["fixed_value"];
 					var targetfield = param[j]["targetfield"];
 					var targetmodule = param[j]["targetmodule"];
 					var settargetfield = param[j]["settargetfield"];
-					var filter_param = ''
-					if (viewname == "Detail") {
+					var filter_param = '';
+					var record = '';
+					if (srcfield_type === 'fixed_value') {
+						// 固定値：フォームを読まず定数をそのまま検索値に使う
+						filter_param = (fixed_value === undefined || fixed_value === null) ? '' : String(fixed_value);
+					} else if (viewname == "Detail") {
 						filter_param = $('input[data-name="'+srcfield+'"]').attr("data-value");
 						// 関連一覧からのクイック編集対応
 						if (filter_param === undefined){
@@ -1594,7 +1600,7 @@ Vtiger.Class('Vtiger_Index_Js', {
 						filter_param = $('input[name="'+srcfield+'"]').val();
 					}
 					if ( targetmodule && filter_param && filter_param != 0 ) {
-						var record = filter_param;
+						record = filter_param;
 						var url = "index.php?action=GetData&source_module="+targetmodule+"&record=" + filter_param;
 						var label = "";
 						jQuery.ajax( { type: 'GET', url: url, async: false} ).then(
