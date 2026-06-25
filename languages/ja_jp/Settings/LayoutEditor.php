@@ -191,6 +191,26 @@ $languageStrings = array(
 	'LBL_REFERENCE_RULE_FILTER_ONLY'      => 'フィルタのみ有効',
 	'LBL_REFERENCE_RULE_UNSET'            => '未設定',
 	'LBL_REFERENCE_TARGET_MODULE'         => '参照先モジュール',
+	// Issue #1621 UI改善：タブ・条件ビルダ・マッピング表
+	'LBL_LOOKUP_FILTER_TAB'               => 'ルックアップ絞り込み',
+	'LBL_AUTO_SET_TAB'                    => '項目自動セット',
+	'LBL_LOOKUP_FILTER_DESC'              => '関連項目を選ぶときの候補レコードを、フォームの値や固定値で絞り込みます。',
+	'LBL_AUTO_SET_DESC'                   => '関連項目を選んだ瞬間、選択レコードの値をこのフォームの項目へ自動入力します。',
+	'LBL_RR_ADD_CONDITION'                => '条件を追加',
+	'LBL_RR_ADD_MAPPING'                  => 'マッピングを追加',
+	'LBL_RR_POPUP_FIELD'                  => '参照先の項目',
+	'LBL_RR_VALUE_KIND'                   => '値の種類',
+	'LBL_RR_VALUE'                        => '値',
+	'LBL_RR_KIND_FIELD'                   => '項目参照',
+	'LBL_RR_KIND_FIXED'                   => '固定値',
+	'LBL_RR_FORM_FIELD'                   => 'このフォームの項目',
+	'LBL_RR_COPY_FROM'                    => 'コピー元（選択レコードの項目）',
+	'LBL_RR_COPY_TO'                      => 'コピー先（このフォームの項目）',
+	'LBL_RR_NO_CONDITIONS'                => '絞り込み条件はありません。「条件を追加」から追加してください。',
+	'LBL_RR_NO_MAPPINGS'                  => 'マッピングはありません。「マッピングを追加」から追加してください。',
+	'LBL_RR_ENABLED'                      => '有効',
+	'LBL_RR_CONFIGURED'                   => '設定あり',
+	'LBL_RR_UNSET'                        => '未設定',
 );
 
 $jsLanguageStrings = array(
@@ -259,4 +279,11 @@ $jsLanguageStrings = array(
 	// Issue #1621 関連項目フィルタ／自動セット (app.vtranslate 用)
 	'JS_REFERENCE_RULE_SAVED'             => '関連項目設定を保存しました',
 	'JS_REFERENCE_RULE_DUPLICATE'         => '同じ組み合わせのルールが既に追加されています',
+	'JS_RR_SAVED'                         => '設定を保存しました',
+	'JS_RR_DUPLICATE'                     => 'このコピー先は既に使われています',
+	'JS_RR_UNSAVED_CONFIRM'               => '保存していない変更があります。移動してよろしいですか？',
+	'JS_RR_SELECT_REQUIRED'               => '必要な項目をすべて選択してください',
+	// プレビュー文言（%s 置換は JS 側で行う）
+	'JS_RR_FILTER_PREVIEW'                => '%s を選ぶとき、%s が %s に一致する候補だけ表示します。',
+	'JS_RR_AUTOSET_PREVIEW'               => '%s を選ぶと、%s を このフォームの %s へ自動入力します。',
 );

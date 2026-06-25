@@ -191,6 +191,26 @@ $languageStrings = array(
 	'LBL_REFERENCE_RULE_FILTER_ONLY'      => 'Filter only',
 	'LBL_REFERENCE_RULE_UNSET'            => 'Not configured',
 	'LBL_REFERENCE_TARGET_MODULE'         => 'Reference target module',
+	// Issue #1621 UI improvement: tabs / condition builder / mapping table
+	'LBL_LOOKUP_FILTER_TAB'               => 'Lookup Filter',
+	'LBL_AUTO_SET_TAB'                    => 'Field Auto-Set',
+	'LBL_LOOKUP_FILTER_DESC'              => 'Filter the candidate records for a reference field by form values or fixed values.',
+	'LBL_AUTO_SET_DESC'                   => 'When a reference field is selected, automatically populate fields on this form with values from the selected record.',
+	'LBL_RR_ADD_CONDITION'                => 'Add Condition',
+	'LBL_RR_ADD_MAPPING'                  => 'Add Mapping',
+	'LBL_RR_POPUP_FIELD'                  => 'Field on the referenced record',
+	'LBL_RR_VALUE_KIND'                   => 'Value type',
+	'LBL_RR_VALUE'                        => 'Value',
+	'LBL_RR_KIND_FIELD'                   => 'Field reference',
+	'LBL_RR_KIND_FIXED'                   => 'Fixed value',
+	'LBL_RR_FORM_FIELD'                   => 'Field on this form',
+	'LBL_RR_COPY_FROM'                    => 'Copy from (field on the selected record)',
+	'LBL_RR_COPY_TO'                      => 'Copy to (field on this form)',
+	'LBL_RR_NO_CONDITIONS'                => 'No filter conditions. Click "Add Condition" to add one.',
+	'LBL_RR_NO_MAPPINGS'                  => 'No mappings. Click "Add Mapping" to add one.',
+	'LBL_RR_ENABLED'                      => 'Enabled',
+	'LBL_RR_CONFIGURED'                   => 'Configured',
+	'LBL_RR_UNSET'                        => 'Not configured',
 );
 
 $jsLanguageStrings = array(
@@ -259,4 +279,11 @@ $jsLanguageStrings = array(
 	// Issue #1621 reference field filter / auto-set (app.vtranslate)
 	'JS_REFERENCE_RULE_SAVED'             => 'Reference field rules have been saved',
 	'JS_REFERENCE_RULE_DUPLICATE'         => 'The same combination is already added',
+	'JS_RR_SAVED'                         => 'Settings have been saved',
+	'JS_RR_DUPLICATE'                     => 'This copy-to field is already in use',
+	'JS_RR_UNSAVED_CONFIRM'               => 'You have unsaved changes. Are you sure you want to leave?',
+	'JS_RR_SELECT_REQUIRED'               => 'Please select all required fields',
+	// Preview text (%s substitution is done on the JS side)
+	'JS_RR_FILTER_PREVIEW'                => 'When selecting %s, show only candidates whose %s matches %s.',
+	'JS_RR_AUTOSET_PREVIEW'               => 'When %s is selected, %s is automatically populated into %s on this form.',
 );
