@@ -174,6 +174,7 @@ $languageStrings = array(
 	'LBL_EDIT_READONLY_DISPLAY_DETAIL_VIEW' => '編集画面において、読み取り専用項目を表示します',
 
 	// Issue #1621 関連項目フィルタ／自動セット (Smarty vtranslate 用)
+	'LBL_FIELD'                           => '項目',
 	'LBL_REFERENCE_RULE'                  => '関連項目設定',
 	'LBL_REFERENCE_RULE_DESCRIPTION'      => '関連項目フィールド選択時に表示する候補のフィルタや、選択後に他項目へ値を自動セットする動作を設定します。',
 	'LBL_REFERENCE_RULE_NO_FIELDS'        => 'このモジュールには関連項目（reference 型）フィールドがありません。',
@@ -192,9 +193,10 @@ $languageStrings = array(
 	'LBL_REFERENCE_RULE_UNSET'            => '未設定',
 	'LBL_REFERENCE_TARGET_MODULE'         => '参照先モジュール',
 	// Issue #1621 UI改善：タブ・条件ビルダ・マッピング表
-	'LBL_LOOKUP_FILTER_TAB'               => 'ルックアップ絞り込み',
+	'LBL_LOOKUP_FILTER_TAB'               => '関連絞り込み',
 	'LBL_AUTO_SET_TAB'                    => '項目自動セット',
 	'LBL_LOOKUP_FILTER_DESC'              => '関連項目を選ぶときの候補レコードを、フォームの値や固定値で絞り込みます。',
+	'LBL_LOOKUP_FILTER_NOTE'              => '絞り込みに使える参照先の項目は、項目編集で「主要項目」または「関連一覧」を有効にした項目に限られます。',
 	'LBL_AUTO_SET_DESC'                   => '関連項目を選んだ瞬間、選択レコードの値をこのフォームの項目へ自動入力します。',
 	'LBL_RR_ADD_CONDITION'                => '条件を追加',
 	'LBL_RR_ADD_MAPPING'                  => 'マッピングを追加',
@@ -283,6 +285,9 @@ $jsLanguageStrings = array(
 	'JS_RR_DUPLICATE'                     => 'このコピー先は既に使われています',
 	'JS_RR_UNSAVED_CONFIRM'               => '保存していない変更があります。移動してよろしいですか？',
 	'JS_RR_SELECT_REQUIRED'               => '必要な項目をすべて選択してください',
+	// 値の種類ドロップダウン（LookupFilter.js が app.vtranslate で参照）
+	'JS_RR_KIND_FIELD'                    => '項目参照',
+	'JS_RR_KIND_FIXED'                    => '固定値',
 	// プレビュー文言（%s 置換は JS 側で行う）
 	'JS_RR_FILTER_PREVIEW'                => '%s を選ぶとき、%s が %s に一致する候補だけ表示します。',
 	'JS_RR_AUTOSET_PREVIEW'               => '%s を選ぶと、%s を このフォームの %s へ自動入力します。',

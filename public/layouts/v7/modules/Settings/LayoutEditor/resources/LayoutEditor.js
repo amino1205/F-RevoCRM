@@ -2362,51 +2362,62 @@ Vtiger.Class('Settings_LayoutEditor_Js', {
 		}
 	},
 	/**
-	 * Issue #1621 関連項目設定タブのクリックハンドラ登録
+	 * Issue #1621 関連項目設定タブ（ルックアップ絞り込み／項目自動セット）のクリックハンドラ登録。
 	 * 既存タブ (triggerRelatedModulesTabClickEvent / triggerDuplicationTabClickEvent) と
-	 * 同じパターン: タブクリックで pjax コンテンツロード + .selectedMode 更新
+	 * 同じパターン: タブクリックで pjax コンテンツロード + .selectedMode 更新。
 	 */
-	triggerReferenceRuleTabClickEvent: function () {
+	triggerReferenceTabClickEvents: function () {
 		var thisInstance = this;
 		var contents = jQuery('#layoutEditorContainer').find('.contents');
-		var referenceRuleContainer = contents.find('#referenceRuleContainer');
-		var referenceRuleTab = contents.find('.referenceRuleTab');
 
-		referenceRuleTab.click(function (e) {
-			thisInstance.showReferenceRuleUI(referenceRuleContainer);
+		var lookupFilterContainer = contents.find('#lookupFilterContainer');
+		contents.find('.lookupFilterTab').click(function (e) {
+			thisInstance.showReferenceTabUI(
+				lookupFilterContainer, 'showLookupFilter',
+				'.lookupFilterContent', 'Settings_LayoutEditor_LookupFilter_Js'
+			);
+			var mode = jQuery(e.currentTarget).find('a').data('mode');
+			jQuery('.selectedMode').val(mode);
+			jQuery("div[name='editReadonlyDisplayDiv']").hide();
+		});
+
+		var autoSetContainer = contents.find('#autoSetContainer');
+		contents.find('.autoSetTab').click(function (e) {
+			thisInstance.showReferenceTabUI(
+				autoSetContainer, 'showAutoSet',
+				'.autoSetContent', 'Settings_LayoutEditor_AutoSet_Js'
+			);
 			var mode = jQuery(e.currentTarget).find('a').data('mode');
 			jQuery('.selectedMode').val(mode);
 			jQuery("div[name='editReadonlyDisplayDiv']").hide();
 		});
 	},
 	/**
-	 * Issue #1621 関連項目設定タブのコンテンツを pjax で取得して描画する。
-	 * 描画後、ReferenceRule.js 内で定義されたクラスをインスタンス化して内部イベントを登録する。
+	 * Issue #1621 指定タブのコンテンツを pjax で取得して描画し、対応する JS クラスを初期化する。
+	 * @param container  描画先コンテナ (jQuery)
+	 * @param mode       'showLookupFilter' | 'showAutoSet'
+	 * @param contentSel 初期化判定に使う内部要素セレクタ ('.lookupFilterContent' | '.autoSetContent')
+	 * @param jsClass    インスタンス化する JS クラス名（文字列）
 	 */
-	showReferenceRuleUI: function (referenceRuleContainer, extraParams) {
+	showReferenceTabUI: function (container, mode, contentSel, jsClass) {
 		var thisInstance = this;
-		if (typeof extraParams == "undefined") {
-			extraParams = {};
-		}
 		var params = {};
 		params['module'] = thisInstance.getModuleName();
 		params['parent'] = app.getParentModuleName();
 		params['sourceModule'] = jQuery('#selectedModuleName').val();
 		params['view'] = 'Index';
-		params['mode'] = 'showReferenceRule';
+		params['mode'] = mode;
 		params['originModule'] = app.getModuleName();
-		params = jQuery.extend(params, extraParams);
 		app.helper.showProgress();
 
 		app.request.pjax({'data': params}).then(
 			function (err, data) {
 				app.helper.hideProgress();
 				if (err === null) {
-					referenceRuleContainer.html(data);
-					if (typeof Settings_LayoutEditor_ReferenceRule_Js !== 'undefined'
-							&& referenceRuleContainer.find('.referenceRuleContent').length > 0) {
-						var refRuleInstance = new Settings_LayoutEditor_ReferenceRule_Js();
-						refRuleInstance.registerEvents();
+					container.html(data);
+					if (typeof window[jsClass] !== 'undefined'
+							&& container.find(contentSel).length > 0) {
+						new window[jsClass]().registerEvents(container);
 					}
 				}
 			});
@@ -2420,7 +2431,7 @@ Vtiger.Class('Settings_LayoutEditor_Js', {
 		thisInstance.triggerFieldListTabClickEvent();
 		thisInstance.triggerRelatedModulesTabClickEvent();
 		thisInstance.triggerDuplicationTabClickEvent();
-		thisInstance.triggerReferenceRuleTabClickEvent();
+		thisInstance.triggerReferenceTabClickEvents();
 		thisInstance.adjustFieldLabelWidth();
 
 		var selectedTab = jQuery('.selectedTab').val();

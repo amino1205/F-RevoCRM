@@ -174,6 +174,7 @@ $languageStrings = array(
 	'LBL_EDIT_READONLY_DISPLAY_DETAIL_VIEW' => 'Show read-only fields in the edit view',
 
 	// Issue #1621 reference field filter / auto-set (Smarty vtranslate)
+	'LBL_FIELD'                           => 'Field',
 	'LBL_REFERENCE_RULE'                  => 'Reference Field Rules',
 	'LBL_REFERENCE_RULE_DESCRIPTION'      => 'Configure filtering of candidate records and auto-set behavior for reference fields.',
 	'LBL_REFERENCE_RULE_NO_FIELDS'        => 'This module has no reference type fields.',
@@ -195,6 +196,7 @@ $languageStrings = array(
 	'LBL_LOOKUP_FILTER_TAB'               => 'Lookup Filter',
 	'LBL_AUTO_SET_TAB'                    => 'Field Auto-Set',
 	'LBL_LOOKUP_FILTER_DESC'              => 'Filter the candidate records for a reference field by form values or fixed values.',
+	'LBL_LOOKUP_FILTER_NOTE'              => 'Only fields with "Summary field" or "Related list" enabled (in field settings) can be used as the lookup filter target.',
 	'LBL_AUTO_SET_DESC'                   => 'When a reference field is selected, automatically populate fields on this form with values from the selected record.',
 	'LBL_RR_ADD_CONDITION'                => 'Add Condition',
 	'LBL_RR_ADD_MAPPING'                  => 'Add Mapping',
@@ -283,6 +285,9 @@ $jsLanguageStrings = array(
 	'JS_RR_DUPLICATE'                     => 'This copy-to field is already in use',
 	'JS_RR_UNSAVED_CONFIRM'               => 'You have unsaved changes. Are you sure you want to leave?',
 	'JS_RR_SELECT_REQUIRED'               => 'Please select all required fields',
+	// Value-kind dropdown (referenced by LookupFilter.js via app.vtranslate)
+	'JS_RR_KIND_FIELD'                    => 'Field reference',
+	'JS_RR_KIND_FIXED'                    => 'Fixed value',
 	// Preview text (%s substitution is done on the JS side)
 	'JS_RR_FILTER_PREVIEW'                => 'When selecting %s, show only candidates whose %s matches %s.',
 	'JS_RR_AUTOSET_PREVIEW'               => 'When %s is selected, %s is automatically populated into %s on this form.',

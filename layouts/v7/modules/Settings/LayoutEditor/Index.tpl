@@ -47,7 +47,8 @@
 					<li class="{if $SELECTED_TAB eq 'duplicationTab'}active {/if}duplicationTab"><a data-toggle="tab" href="#duplicationContainer" data-url="{$URL}" data-mode="showDuplicationHandling"><strong>{vtranslate('LBL_DUPLICATE_HANDLING', $QUALIFIED_MODULE)}</strong></a></li>
 					{* Issue #1621: マイグレーション (vtiger_reference_rule(_section) テーブル作成) 実行後のみタブを表示 *}
 					{if $REFERENCE_RULE_AVAILABLE}
-						<li class="{if $SELECTED_TAB eq 'referenceRuleTab'}active {/if}referenceRuleTab"><a data-toggle="tab" href="#referenceRuleContainer" data-url="{$URL}" data-mode="showReferenceRule"><strong>{vtranslate('LBL_REFERENCE_RULE', $QUALIFIED_MODULE)}</strong></a></li>
+						<li class="{if $SELECTED_TAB eq 'lookupFilterTab'}active {/if}lookupFilterTab"><a data-toggle="tab" href="#lookupFilterContainer" data-url="{$URL}" data-mode="showLookupFilter"><strong>{vtranslate('LBL_LOOKUP_FILTER_TAB', $QUALIFIED_MODULE)}</strong></a></li>
+						<li class="{if $SELECTED_TAB eq 'autoSetTab'}active {/if}autoSetTab"><a data-toggle="tab" href="#autoSetContainer" data-url="{$URL}" data-mode="showAutoSet"><strong>{vtranslate('LBL_AUTO_SET_TAB', $QUALIFIED_MODULE)}</strong></a></li>
 					{/if}
 				</ul>
 				<div class="tab-content layoutContent themeTableColor overflowVisible">
@@ -67,9 +68,14 @@
 						{/if}
 					</div>
 					{if $REFERENCE_RULE_AVAILABLE}
-						<div class="tab-pane{if $SELECTED_TAB eq 'referenceRuleTab'} active{/if}" id="referenceRuleContainer">
-							{if $SELECTED_TAB eq 'referenceRuleTab'}
-								{include file=vtemplate_path('ReferenceRule.tpl', $QUALIFIED_MODULE)}
+						<div class="tab-pane{if $SELECTED_TAB eq 'lookupFilterTab'} active{/if}" id="lookupFilterContainer">
+							{if $SELECTED_TAB eq 'lookupFilterTab'}
+								{include file=vtemplate_path('LookupFilter.tpl', $QUALIFIED_MODULE)}
+							{/if}
+						</div>
+						<div class="tab-pane{if $SELECTED_TAB eq 'autoSetTab'} active{/if}" id="autoSetContainer">
+							{if $SELECTED_TAB eq 'autoSetTab'}
+								{include file=vtemplate_path('AutoSet.tpl', $QUALIFIED_MODULE)}
 							{/if}
 						</div>
 					{/if}

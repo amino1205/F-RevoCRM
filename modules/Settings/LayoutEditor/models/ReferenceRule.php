@@ -249,9 +249,13 @@ class Settings_LayoutEditor_ReferenceRule_Model {
         $referenceFields = array();
         $allFieldsByTarget = array();
 
-        $fields = $moduleModel->getFieldsByType('reference');
-        foreach ($fields as $fieldModel) {
-            if (!$fieldModel->isActiveField()) {
+        // getFields() は画面順（vtiger_blocks.sequence → vtiger_field.sequence）を保持する。
+        // 画面順を維持したまま「非表示(!isViewable)を除外し、単一参照の reference 型」だけを拾う。
+        foreach ($moduleModel->getFields() as $fieldModel) {
+            if (!$fieldModel->isViewable()) {
+                continue;
+            }
+            if ($fieldModel->getFieldDataType() !== 'reference') {
                 continue;
             }
             $referenceList = $fieldModel->getReferenceList();
@@ -292,8 +296,13 @@ class Settings_LayoutEditor_ReferenceRule_Model {
         }
 
         $list = array();
+        // getFields() は vtiger_blocks.sequence → vtiger_field.sequence 順（画面順）を保持する。
+        // 並べ替えず順序を維持し、非表示（!isViewable）項目は候補から除外する。
         $allFields = $moduleModel->getFields();
         foreach ($allFields as $fieldModel) {
+            if (!$fieldModel->isViewable()) {
+                continue;
+            }
             $type = $fieldModel->getFieldDataType();
             $refTarget = '';
             if ($type === 'reference') {
@@ -303,16 +312,17 @@ class Settings_LayoutEditor_ReferenceRule_Model {
                 }
             }
             $list[] = array(
-                'name'   => $fieldModel->getName(),
-                'label'  => vtranslate($fieldModel->get('label'), $targetModule),
-                'type'   => $type,
-                'target' => $refTarget,
+                'name'       => $fieldModel->getName(),
+                'label'      => vtranslate($fieldModel->get('label'), $targetModule),
+                'type'       => $type,
+                'target'     => $refTarget,
+                // フィルタで参照先項目に使えるのは「主要項目(summaryfield)」または
+                // 「関連一覧(headerfield)」が有効な項目のみ（ポップアップ検索が扱える項目）。
+                // フィルタタブでのみ参照。自動セットのコピー元は全項目を許可する。
+                'filterable' => ($fieldModel->isSummaryField() || $fieldModel->isHeaderField()) ? true : false,
             );
         }
-        usort($list, function($a, $b) {
-            return strcmp($a['label'], $b['label']);
-        });
-        return $list;
+        return $list; // usort は行わない（画面順を維持）
     }
 
     /**

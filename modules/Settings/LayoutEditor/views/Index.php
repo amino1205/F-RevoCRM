@@ -17,7 +17,9 @@ class Settings_LayoutEditor_Index_View extends Settings_Vtiger_Index_View {
 		$this->exposeMethod('showRelatedListLayout');
 		$this->exposeMethod('showFieldEdit');
 		$this->exposeMethod('showDuplicationHandling');
-		$this->exposeMethod('showReferenceRule');
+		// Issue #1621: 関連項目設定タブを「ルックアップ絞り込み」「項目自動セット」の2タブに分割
+		$this->exposeMethod('showLookupFilter');
+		$this->exposeMethod('showAutoSet');
 	}
 
 	public function process(Vtiger_Request $request) {
@@ -26,16 +28,17 @@ class Settings_LayoutEditor_Index_View extends Settings_Vtiger_Index_View {
 		// Issue #1621: 関連項目設定タブはマイグレーション実行後にのみ表示する
 		$referenceRuleAvailable = Settings_LayoutEditor_ReferenceRule_Model::tablesExist();
 
-		// テーブル未作成時に ?mode=showReferenceRule で直接アクセスされた場合は
+		// テーブル未作成時に ?mode=showLookupFilter / showAutoSet で直接アクセスされた場合は
 		// デフォルトタブにフォールバックする
-		if ($mode === 'showReferenceRule' && !$referenceRuleAvailable) {
+		if (($mode === 'showLookupFilter' || $mode === 'showAutoSet') && !$referenceRuleAvailable) {
 			$mode = null;
 		}
 
 		switch($mode) {
 			case 'showRelatedListLayout'	:	$selectedTab = 'relatedListTab';	break;
 			case 'showDuplicationHandling'	:	$selectedTab = 'duplicationTab';	break;
-			case 'showReferenceRule'		:	$selectedTab = 'referenceRuleTab';	break;
+			case 'showLookupFilter'			:	$selectedTab = 'lookupFilterTab';	break;
+			case 'showAutoSet'				:	$selectedTab = 'autoSetTab';		break;
 			default							:	$selectedTab = 'detailViewTab';
 												if (!$mode) {
 													$mode = 'showFieldLayout';
@@ -262,7 +265,8 @@ class Settings_LayoutEditor_Index_View extends Settings_Vtiger_Index_View {
 		$jsFileNames = array(
 			'~libraries/garand-sticky/jquery.sticky.js',
 			'~/libraries/jquery/bootstrapswitch/js/bootstrap-switch.min.js',
-			'modules.Settings.LayoutEditor.resources.ReferenceRule',
+			'modules.Settings.LayoutEditor.resources.LookupFilter',
+			'modules.Settings.LayoutEditor.resources.AutoSet',
 		);
 
 		$jsScriptInstances = $this->checkAndConvertJsScripts($jsFileNames);
@@ -271,11 +275,12 @@ class Settings_LayoutEditor_Index_View extends Settings_Vtiger_Index_View {
 	}
 
 	/**
-	 * Issue #1621: 関連項目フィルタ／項目自動セットのルールを GUI で編集するタブを表示する。
+	 * Issue #1621: タブ共通のデータ組み立て。reference 項目一覧・既存ルール・メタデータを返す。
 	 *
 	 * @param Vtiger_Request $request
+	 * @return array
 	 */
-	public function showReferenceRule(Vtiger_Request $request) {
+	private function buildReferenceRuleViewData(Vtiger_Request $request) {
 		$sourceModule = $request->get('sourceModule');
 		// getSupportedModules() は [moduleName => translatedLabel] を返す。
 		// array_flip 後は [translatedLabel => moduleName] となり、
@@ -311,32 +316,64 @@ class Settings_LayoutEditor_Index_View extends Settings_Vtiger_Index_View {
 			$referenceFields[$fieldModel->getName()] = $fieldModel;
 		}
 
-		// 既存ルール
-		$rules = Settings_LayoutEditor_ReferenceRule_Model::loadForSettings($sourceModule);
+		return array(
+			'sourceModule'    => $sourceModule,
+			'moduleModel'     => $moduleModel,
+			'supportedList'   => $supportedModulesList,
+			'referenceFields' => $referenceFields,
+			'rules'           => Settings_LayoutEditor_ReferenceRule_Model::loadForSettings($sourceModule),
+			'fieldsMeta'      => Settings_LayoutEditor_ReferenceRule_Model::buildFieldsMeta($sourceModule),
+		);
+	}
 
-		// プルダウン用メタデータ
-		$fieldsMeta = Settings_LayoutEditor_ReferenceRule_Model::buildFieldsMeta($sourceModule);
-
+	/**
+	 * Issue #1621: 関連項目設定タブ（絞り込み／自動セット）共通の描画処理。
+	 *
+	 * @param Vtiger_Request $request
+	 * @param string $tplName     Ajax 部分描画時のテンプレート（LookupFilter.tpl / AutoSet.tpl）
+	 * @param string $selectedTab タブ識別子（lookupFilterTab / autoSetTab）
+	 * @param string $mode        モード名（showLookupFilter / showAutoSet）
+	 */
+	private function renderReferenceRuleTab(Vtiger_Request $request, $tplName, $selectedTab, $mode) {
+		$d = $this->buildReferenceRuleViewData($request);
 		$qualifiedModule = $request->getModule(false);
 		$viewer = $this->getViewer($request);
 		// Index.tpl 用の共通アサイン（フルページ描画時に必要）
-		$viewer->assign('MODE', 'showReferenceRule');
-		$viewer->assign('SELECTED_TAB', 'referenceRuleTab');
-		$viewer->assign('SELECTED_MODULE_NAME', $sourceModule);
-		$viewer->assign('SELECTED_MODULE_MODEL', $moduleModel);
-		$viewer->assign('SUPPORTED_MODULES', $supportedModulesList);
+		$viewer->assign('MODE', $mode);
+		$viewer->assign('SELECTED_TAB', $selectedTab);
+		$viewer->assign('SELECTED_MODULE_NAME', $d['sourceModule']);
+		$viewer->assign('SELECTED_MODULE_MODEL', $d['moduleModel']);
+		$viewer->assign('SUPPORTED_MODULES', $d['supportedList']);
 		$viewer->assign('REQUEST_INSTANCE', $request);
-		// ReferenceRule.tpl 用のアサイン
-		$viewer->assign('REFERENCE_FIELDS', $referenceFields);
-		$viewer->assign('REFERENCE_RULES', $rules);
-		$viewer->assign('FIELDS_META', Zend_Json::encode($fieldsMeta));
+		// LookupFilter.tpl / AutoSet.tpl 用のアサイン
+		$viewer->assign('REFERENCE_FIELDS', $d['referenceFields']);
+		$viewer->assign('REFERENCE_RULES', $d['rules']);
+		$viewer->assign('FIELDS_META', Zend_Json::encode($d['fieldsMeta']));
 		$viewer->assign('QUALIFIED_MODULE', $qualifiedModule);
 
 		if ($request->isAjax() && !$request->get('showFullContents')) {
-			$viewer->view('ReferenceRule.tpl', $qualifiedModule);
+			$viewer->view($tplName, $qualifiedModule);
 		} else {
 			$viewer->view('Index.tpl', $qualifiedModule);
 		}
+	}
+
+	/**
+	 * Issue #1621: ルックアップ絞り込みタブを表示する。
+	 *
+	 * @param Vtiger_Request $request
+	 */
+	public function showLookupFilter(Vtiger_Request $request) {
+		$this->renderReferenceRuleTab($request, 'LookupFilter.tpl', 'lookupFilterTab', 'showLookupFilter');
+	}
+
+	/**
+	 * Issue #1621: 項目自動セットタブを表示する。
+	 *
+	 * @param Vtiger_Request $request
+	 */
+	public function showAutoSet(Vtiger_Request $request) {
+		$this->renderReferenceRuleTab($request, 'AutoSet.tpl', 'autoSetTab', 'showAutoSet');
 	}
 
 	/**
