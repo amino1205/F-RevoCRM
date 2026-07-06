@@ -15,6 +15,22 @@ class Settings_LayoutEditor_ReferenceRule_Model {
     const RULE_TYPE_AUTO_SET = 'auto_set';
 
     /**
+     * フィルタ（ポップアップ検索）が search_params を無視するモジュール。
+     * これらを参照先とする reference 項目は「関連絞り込み（フィルタ）」では対象外にする。
+     *  - Users : searchRecord を独自実装しており（vtiger_users を直接検索・crmentity 非経由）、
+     *            $search_params 引数を受け取るが本文で一切参照しないため絞り込みが効かない。
+     * ※ Leads / Products は search_params 分岐を実装したため対象外から除外した（Issue #1621 Phase 10）。
+     *   - Leads は base 経路へフォールバックし converted=0 除外を維持。
+     *   - Products / Services は EnhancedQueryGenerator 経路に discontinued=1 を後付けして絞り込みに対応。
+     * ※ 自動セット（AutoSet）は検索を伴わないため除外しない。
+     */
+    const FILTER_UNSUPPORTED_MODULES = array('Users');
+
+    public static function getFilterUnsupportedModules() {
+        return self::FILTER_UNSUPPORTED_MODULES;
+    }
+
+    /**
      * テーブル存在キャッシュ。マイグレーション未実行環境で全画面が SQL エラーを
      * 出し続けるのを避けるため、最初の判定結果を 1 リクエスト内で再利用する。
      * @var bool|null
@@ -369,6 +385,13 @@ class Settings_LayoutEditor_ReferenceRule_Model {
         $fieldRefModuleModel = Vtiger_Module_Model::getInstance($fieldRefModuleName);
         if (!$fieldRefModuleModel) {
             throw new Exception('field reference module not found: ' . $fieldRefModuleName);
+        }
+
+        // フィルタ非対応モジュール（ポップアップ検索が search_params を無視する）を参照する
+        // reference 項目には、フィルタ（絞り込み）ルールを設定できない。
+        if ($ruleType === self::RULE_TYPE_FILTER
+            && in_array($fieldRefModuleName, self::FILTER_UNSUPPORTED_MODULES, true)) {
+            throw new Exception('lookup filter is not supported for module: ' . $fieldRefModuleName);
         }
 
         $seenTargets = array(); // (C)/(B) のコピー先重複検出（同じ srcfield に二重割当て不可）

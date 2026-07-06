@@ -444,18 +444,40 @@ class Products_Record_Model extends Vtiger_Record_Model {
 	public static function getSearchResult($searchKey, $module=false, $pageLimit = 100, $search_params = '') {
 		$db = PearDatabase::getInstance();
 
+		// Issue #1621: 関連絞り込み（search_params）指定時は EnhancedQueryGenerator 経路で
+		// 条件を適用しつつ、販売中（discontinued=1）のみに限定する（廃番混入を防ぐ）。
+		// search_params 空時は従来の独自SQL（在庫明細の製品ピッカー・グローバル検索の後方互換）を温存する。
+		if (!empty($search_params) && $module !== false && is_string($module)) {
+			$currentUser = vglobal('current_user');
+			$queryGenerator = new EnhancedQueryGenerator($module, $currentUser);
+			$moduleModel = Vtiger_Module_Model::getInstance($module);
+			$transformedSearchParams = Vtiger_Util_Helper::transferListSearchParamsToFilterCondition($search_params, $moduleModel);
+			$queryGenerator->parseAdvFilterList($transformedSearchParams, "");
+			$query  = 'SELECT vtiger_crmentity.label, vtiger_crmentity.crmid, vtiger_crmentity.setype, vtiger_crmentity.createdtime ';
+			$query .= $queryGenerator->getFromClause();
+			$query .= $queryGenerator->getWhereClause();
+			$query .= ($module === 'Services')
+					? ' AND vtiger_service.discontinued = 1 '
+					: ' AND vtiger_products.discontinued = 1 ';
+			$query .= ' AND vtiger_crmentity.label LIKE ? ';
+			$query .= ' ORDER BY vtiger_crmentity.modifiedtime DESC';
+			$result = $db->pquery($query, array("%$searchKey%"));
+			return self::formatSearchResultRows($db, $result);
+		}
+		// 以降は従来の独自SQL（discontinued=1・search_params 空時）
+
 		$query = 'SELECT label, crmid, setype, createdtime FROM vtiger_crmentity WHERE label LIKE ? AND vtiger_crmentity.deleted = 0';
 		$params = array("%$searchKey%");
 
 		if($module !== false) {
 			$query .= ' AND setype = ?';
 			if($module == 'Products'){
-				$query = 'SELECT label, crmid, setype, createdtime FROM vtiger_crmentity INNER JOIN vtiger_products ON 
-							vtiger_products.productid = vtiger_crmentity.crmid WHERE label LIKE ? AND vtiger_crmentity.deleted = 0 
+				$query = 'SELECT label, crmid, setype, createdtime FROM vtiger_crmentity INNER JOIN vtiger_products ON
+							vtiger_products.productid = vtiger_crmentity.crmid WHERE label LIKE ? AND vtiger_crmentity.deleted = 0
 							AND vtiger_products.discontinued = 1 AND setype = ?';
 			}else if($module == 'Services'){
-				$query = 'SELECT label, crmid, setype, createdtime FROM vtiger_crmentity INNER JOIN vtiger_service ON 
-							vtiger_service.serviceid = vtiger_crmentity.crmid WHERE label LIKE ? AND vtiger_crmentity.deleted = 0 
+				$query = 'SELECT label, crmid, setype, createdtime FROM vtiger_crmentity INNER JOIN vtiger_service ON
+							vtiger_service.serviceid = vtiger_crmentity.crmid WHERE label LIKE ? AND vtiger_crmentity.deleted = 0
 							AND vtiger_service.discontinued = 1 AND setype = ?';
 			}
 			$params[] = $module;
@@ -464,6 +486,18 @@ class Products_Record_Model extends Vtiger_Record_Model {
 		//$query .= ' ORDER BY createdtime DESC';
 
 		$result = $db->pquery($query, $params);
+		return self::formatSearchResultRows($db, $result);
+	}
+
+	/**
+	 * Issue #1621: 検索結果の SQL 行を $matchingRecords 形式（[moduleName][id] => Record_Model）に整形する。
+	 * search_params 分岐と従来SQL分岐で同一の整形処理を共用するためのヘルパ。
+	 * 変換済みリード除外・DetailView 権限チェックは従来の override と同一。
+	 * @param PearDatabase $db
+	 * @param resource $result
+	 * @return array<string, array<int, Vtiger_Record_Model>>
+	 */
+	private static function formatSearchResultRows($db, $result) {
 		$noOfRows = $db->num_rows($result);
 
 		$moduleModels = $matchingRecords = $leadIdsList = array();

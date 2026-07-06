@@ -373,7 +373,9 @@ Vtiger_Index_Js("Vtiger_Edit_Js",{
             }
             var fieldname = refelence_auto_set[i]["field"];
             argument[fieldname] = refelence_auto_set[i]["param"];
-            jQuery('input[name="'+fieldname+'"]', container).on(Vtiger_Edit_Js.referenceSelectionEvent, function(e, data){
+            // フォーム再描画等で同一要素に複数回バインドされ、自動セットが多重発火するのを防ぐため
+            // 一旦既存ハンドラを off してから on する。
+            jQuery('input[name="'+fieldname+'"]', container).off(Vtiger_Edit_Js.referenceSelectionEvent).on(Vtiger_Edit_Js.referenceSelectionEvent, function(e, data){
                 var temp_param = argument[e.currentTarget.name];
                 if(data) thisInstance.autoSetByReference(data, container,temp_param);
             });

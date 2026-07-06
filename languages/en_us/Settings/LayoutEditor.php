@@ -197,6 +197,8 @@ $languageStrings = array(
 	'LBL_AUTO_SET_TAB'                    => 'Field Auto-Set',
 	'LBL_LOOKUP_FILTER_DESC'              => 'Filter the candidate records for a reference field by form values or fixed values.',
 	'LBL_LOOKUP_FILTER_NOTE'              => 'Only fields with "Summary field" or "Related list" enabled (in field settings) can be used as the lookup filter target.',
+	// Shown when every reference field points only to a filter-unsupported module (Leads/Products/Users, etc.)
+	'LBL_LOOKUP_FILTER_NO_FILTERABLE_FIELDS' => 'No fields available for lookup filtering.',
 	'LBL_AUTO_SET_DESC'                   => 'When a reference field is selected, automatically populate fields on this form with values from the selected record.',
 	'LBL_RR_ADD_CONDITION'                => 'Add Condition',
 	'LBL_RR_ADD_MAPPING'                  => 'Add Mapping',
@@ -288,7 +290,12 @@ $jsLanguageStrings = array(
 	// Value-kind dropdown (referenced by LookupFilter.js via app.vtranslate)
 	'JS_RR_KIND_FIELD'                    => 'Field reference',
 	'JS_RR_KIND_FIXED'                    => 'Fixed value',
-	// Preview text (%s substitution is done on the JS side)
-	'JS_RR_FILTER_PREVIEW'                => 'When selecting %s, show only candidates whose %s matches %s.',
-	'JS_RR_AUTOSET_PREVIEW'               => 'When %s is selected, %s is automatically populated into %s on this form.',
+	// Preview text (%s substitution is done by the JS fmt(); frame uses %s x2, fragments/conjunctions are separate keys)
+	'JS_RR_FILTER_PREVIEW'                => 'When selecting %s, show only candidates matching %s.',
+	'JS_RR_FILTER_COND_FIELD'             => '%s equals %s',
+	'JS_RR_FILTER_COND_FIXED'             => '%s equals "%s"',
+	'JS_RR_COND_AND'                      => ' and ',
+	'JS_RR_AUTOSET_PREVIEW'               => 'When %s is selected, auto-fill %s.',
+	'JS_RR_AUTOSET_MAP'                   => '%s → %s',
+	'JS_RR_MAP_SEP'                       => ', ',
 );

@@ -349,6 +349,9 @@ class Settings_LayoutEditor_Index_View extends Settings_Vtiger_Index_View {
 		$viewer->assign('REFERENCE_FIELDS', $d['referenceFields']);
 		$viewer->assign('REFERENCE_RULES', $d['rules']);
 		$viewer->assign('FIELDS_META', Zend_Json::encode($d['fieldsMeta']));
+		// フィルタ非対応モジュール（LookupFilter.tpl で参照先が該当する項目行を除外する）
+		$viewer->assign('FILTER_UNSUPPORTED_MODULES',
+			Settings_LayoutEditor_ReferenceRule_Model::getFilterUnsupportedModules());
 		$viewer->assign('QUALIFIED_MODULE', $qualifiedModule);
 
 		if ($request->isAjax() && !$request->get('showFullContents')) {

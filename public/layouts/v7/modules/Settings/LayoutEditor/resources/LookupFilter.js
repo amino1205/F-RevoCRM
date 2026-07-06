@@ -66,6 +66,12 @@ Settings_LayoutEditor_LookupFilter_Js = (function () {
 			return name;
 		},
 
+		// テンプレート中の %s を args の要素で先頭から順に置換する（i18n プレビュー組み立て用）
+		fmt: function (tpl, args) {
+			var i = 0;
+			return String(tpl).replace(/%s/g, function () { return (i < args.length) ? args[i++] : ''; });
+		},
+
 		// XSS 対策: option の value/text は jQuery API で安全に挿入する
 		buildSelect: function (cls, options, valueKey, labelKey) {
 			var $sel = jQuery('<select class="form-control input-sm"></select>').addClass(cls);
@@ -218,13 +224,15 @@ Settings_LayoutEditor_LookupFilter_Js = (function () {
 				// 内部名ではなく項目ラベルでプレビュー表示する
 				var targetLabel = this.labelFor(this.popupFieldOptions(fieldRow), r.targetfield);
 				if (r.srcfield_type === 'fixed_value') {
-					parts.push(targetLabel + ' = 「' + r.fixed_value + '」');
+					parts.push(this.fmt(app.vtranslate('JS_RR_FILTER_COND_FIXED'), [targetLabel, r.fixed_value]));
 				} else {
-					parts.push(targetLabel + ' = ' + this.labelFor(this.formReferenceOptions(), r.srcfield));
+					parts.push(this.fmt(app.vtranslate('JS_RR_FILTER_COND_FIELD'),
+						[targetLabel, this.labelFor(this.formReferenceOptions(), r.srcfield)]));
 				}
 			}
 			var text = rules.length === 0 ? '—' :
-				(fieldLabel + ' を選ぶとき、' + parts.join(' かつ ') + ' に一致する候補だけ表示します。');
+				this.fmt(app.vtranslate('JS_RR_FILTER_PREVIEW'),
+					[fieldLabel, parts.join(app.vtranslate('JS_RR_COND_AND'))]);
 			editor.find('.rrPreviewText').text(text);
 		},
 

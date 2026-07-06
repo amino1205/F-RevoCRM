@@ -23,6 +23,14 @@ class Leads_Record_Model extends Vtiger_Record_Model {
 	 * @return <Array> - List of Vtiger_Record_Model or Module Specific Record Model instances
 	 */
 	public static function getSearchResult($searchKey, $module=false, $pageLimit = 100, $search_params = '') {
+		// Issue #1621: 関連絞り込み（search_params）指定時は base 経路へ委譲する。
+		// base の EnhancedQueryGenerator('Leads') は既定の削除条件として
+		// vtiger_leaddetails.converted=0 を付与し、getConvertedInfo のループ除外も働くため、
+		// 変換済みリード除外は維持される（CLI裏取り済み）。
+		if (!empty($search_params)) {
+			return parent::getSearchResult($searchKey, $module, $pageLimit, $search_params);
+		}
+		// 以降は従来の独自SQL（search_params 空時のみ）
 		$db = PearDatabase::getInstance();
 
         $leadsModuleModel = Vtiger_Module_Model::getInstance('Leads');

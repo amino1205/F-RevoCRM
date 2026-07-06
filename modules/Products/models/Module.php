@@ -93,9 +93,10 @@ class Products_Module_Model extends Vtiger_Module_Model {
 	 */
 	public function searchRecord($searchValue, $parentId=false, $parentModule=false, $relatedModule=false, $search_params = '') {
 		if(!empty($searchValue) && empty($parentId) && empty($parentModule) && (in_array($relatedModule, getInventoryModules()))) {
-			$matchingRecords = Products_Record_Model::getSearchResult($searchValue, $this->getName());
+			// Issue #1621: 在庫明細の製品ピッカー経路。search_params 空時は従来どおり（販売中のみ）。
+			$matchingRecords = Products_Record_Model::getSearchResult($searchValue, $this->getName(), 100, $search_params);
 		}else {
-			return parent::searchRecord($searchValue);
+			return parent::searchRecord($searchValue, $parentId, $parentModule, $relatedModule, $search_params);
 		}
 
 		return $matchingRecords;

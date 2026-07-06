@@ -62,6 +62,12 @@ Settings_LayoutEditor_AutoSet_Js = (function () {
 			return name;
 		},
 
+		// テンプレート中の %s を args の要素で先頭から順に置換する（i18n プレビュー組み立て用）
+		fmt: function (tpl, args) {
+			var i = 0;
+			return String(tpl).replace(/%s/g, function () { return (i < args.length) ? args[i++] : ''; });
+		},
+
 		// XSS 対策: option の value/text は jQuery API で安全に挿入する
 		buildSelect: function (cls, options) {
 			var $sel = jQuery('<select class="form-control input-sm"></select>').addClass(cls);
@@ -176,10 +182,11 @@ Settings_LayoutEditor_AutoSet_Js = (function () {
 				// 内部名ではなく項目ラベルでプレビュー表示する
 				var fromLabel = this.labelFor(this.copyFromOptions(fieldRow), res.rules[i].targetfield);
 				var toLabel = this.labelFor(this.copyToOptions(), res.rules[i].srcfield);
-				parts.push(fromLabel + ' → ' + toLabel);
+				parts.push(this.fmt(app.vtranslate('JS_RR_AUTOSET_MAP'), [fromLabel, toLabel]));
 			}
 			var text = res.rules.length === 0 ? '—' :
-				(fieldLabel + ' を選ぶと、' + parts.join('、') + ' を自動入力します。');
+				this.fmt(app.vtranslate('JS_RR_AUTOSET_PREVIEW'),
+					[fieldLabel, parts.join(app.vtranslate('JS_RR_MAP_SEP'))]);
 			editor.find('.rrPreviewText').text(text);
 		},
 

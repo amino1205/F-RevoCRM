@@ -197,6 +197,8 @@ $languageStrings = array(
 	'LBL_AUTO_SET_TAB'                    => '項目自動セット',
 	'LBL_LOOKUP_FILTER_DESC'              => '関連項目を選ぶときの候補レコードを、フォームの値や固定値で絞り込みます。',
 	'LBL_LOOKUP_FILTER_NOTE'              => '絞り込みに使える参照先の項目は、項目編集で「主要項目」または「関連一覧」を有効にした項目に限られます。',
+	// フィルタ非対応モジュール（Leads/Products/Users 等）参照のみで絞り込み可能な項目が無い場合の案内
+	'LBL_LOOKUP_FILTER_NO_FILTERABLE_FIELDS' => '絞り込み可能な関連項目がありません。',
 	'LBL_AUTO_SET_DESC'                   => '関連項目を選んだ瞬間、選択レコードの値をこのフォームの項目へ自動入力します。',
 	'LBL_RR_ADD_CONDITION'                => '条件を追加',
 	'LBL_RR_ADD_MAPPING'                  => 'マッピングを追加',
@@ -288,7 +290,12 @@ $jsLanguageStrings = array(
 	// 値の種類ドロップダウン（LookupFilter.js が app.vtranslate で参照）
 	'JS_RR_KIND_FIELD'                    => '項目参照',
 	'JS_RR_KIND_FIXED'                    => '固定値',
-	// プレビュー文言（%s 置換は JS 側で行う）
-	'JS_RR_FILTER_PREVIEW'                => '%s を選ぶとき、%s が %s に一致する候補だけ表示します。',
-	'JS_RR_AUTOSET_PREVIEW'               => '%s を選ぶと、%s を このフォームの %s へ自動入力します。',
+	// プレビュー文言（%s 置換は JS 側の fmt() で逐次行う。枠は %s×2、断片・接続詞は別キー）
+	'JS_RR_FILTER_PREVIEW'                => '%s を選ぶとき、%s に一致する候補だけ表示します。',
+	'JS_RR_FILTER_COND_FIELD'             => '%s が %s',
+	'JS_RR_FILTER_COND_FIXED'             => '%s が「%s」',
+	'JS_RR_COND_AND'                      => ' かつ ',
+	'JS_RR_AUTOSET_PREVIEW'               => '%s を選ぶと、%s を自動入力します。',
+	'JS_RR_AUTOSET_MAP'                   => '%s → %s',
+	'JS_RR_MAP_SEP'                       => '、',
 );

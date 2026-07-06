@@ -17,6 +17,7 @@
 				<th width="35%">{vtranslate('LBL_REFERENCE_RULE_STATUS', $QUALIFIED_MODULE)}</th>
 			</tr></thead>
 			<tbody>
+			{assign var=SHOWN_COUNT value=0}
 			{foreach from=$REFERENCE_FIELDS key=FIELD_NAME item=FIELD_MODEL}
 				{assign var=FIELD_RULES value=$REFERENCE_RULES.$FIELD_NAME|default:null}
 				{assign var=FILTER_DATA value=$FIELD_RULES.filter|default:null}
@@ -26,6 +27,9 @@
 				{assign var=REF_LIST value=$FIELD_MODEL->getReferenceList()}
 				{assign var=POPUP_MODULE value=''}
 				{if $REF_LIST}{foreach from=$REF_LIST item=RM}{assign var=POPUP_MODULE value=$RM}{/foreach}{/if}
+				{* フィルタ非対応モジュール（Leads/Products/Users 等）を参照する項目は絞り込みできないため描画しない *}
+				{if in_array($POPUP_MODULE, $FILTER_UNSUPPORTED_MODULES)}{continue}{/if}
+				{assign var=SHOWN_COUNT value=$SHOWN_COUNT+1}
 
 				<tr class="referenceFieldRow" data-field-name="{$FIELD_NAME}" data-popup-module="{$POPUP_MODULE|escape:'html'}">
 					<td>
@@ -89,6 +93,9 @@
 			{/foreach}
 			</tbody>
 		</table>
+		{if $SHOWN_COUNT eq 0}
+			<div class="alert alert-warning">{vtranslate('LBL_LOOKUP_FILTER_NO_FILTERABLE_FIELDS', $QUALIFIED_MODULE)}</div>
+		{/if}
 	{/if}
 </div>
 {/strip}
