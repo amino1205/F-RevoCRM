@@ -212,7 +212,6 @@ $languageStrings = array(
 	'LBL_RR_COPY_TO'                      => 'コピー先（このフォームの項目）',
 	'LBL_RR_NO_CONDITIONS'                => '絞り込み条件はありません。「条件を追加」から追加してください。',
 	'LBL_RR_NO_MAPPINGS'                  => 'マッピングはありません。「マッピングを追加」から追加してください。',
-	'LBL_RR_ENABLED'                      => '有効',
 	'LBL_RR_CONFIGURED'                   => '設定あり',
 	'LBL_RR_UNSET'                        => '未設定',
 );
@@ -286,7 +285,6 @@ $jsLanguageStrings = array(
 	'JS_RR_SAVED'                         => '設定を保存しました',
 	'JS_RR_DUPLICATE'                     => 'このコピー先は既に使われています',
 	'JS_RR_UNSAVED_CONFIRM'               => '保存していない変更があります。移動してよろしいですか？',
-	'JS_RR_SELECT_REQUIRED'               => '必要な項目をすべて選択してください',
 	// 値の種類ドロップダウン（LookupFilter.js が app.vtranslate で参照）
 	'JS_RR_KIND_FIELD'                    => '項目参照',
 	'JS_RR_KIND_FIXED'                    => '固定値',

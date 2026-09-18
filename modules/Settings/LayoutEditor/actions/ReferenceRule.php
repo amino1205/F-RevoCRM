@@ -20,12 +20,14 @@ class Settings_LayoutEditor_ReferenceRule_Action extends Settings_Vtiger_Index_A
 
     /**
      * セクション 1 件分（filter または auto_set）のルールを保存する。
+     * 「設定があれば有効」仕様のため有効/無効フラグは受け取らない。
+     * rules が空配列のときは当該セクションを削除し「未設定」に戻す。
+     *
      * リクエスト例:
      *   POST module=Settings:LayoutEditor&action=ReferenceRule&mode=save
      *     source_module=Quotes
      *     field_name=potential_id
      *     rule_type=filter
-     *     is_enabled=1
      *     rules=[{"srcfield":"account_id","targetfield":"related_to","targetmodule":"Accounts"}, ...]
      */
     public function save(Vtiger_Request $request) {
@@ -34,7 +36,6 @@ class Settings_LayoutEditor_ReferenceRule_Action extends Settings_Vtiger_Index_A
             $sourceModule = $request->get('source_module');
             $fieldName    = $request->get('field_name');
             $ruleType     = $request->get('rule_type');
-            $isEnabled    = (int)$request->get('is_enabled') === 1;
             $rules        = $request->get('rules');
 
             if (is_string($rules)) {
@@ -45,7 +46,7 @@ class Settings_LayoutEditor_ReferenceRule_Action extends Settings_Vtiger_Index_A
             }
 
             Settings_LayoutEditor_ReferenceRule_Model::saveSection(
-                $sourceModule, $fieldName, $ruleType, $isEnabled, $rules
+                $sourceModule, $fieldName, $ruleType, $rules
             );
 
             // 保存後の最新状態をまとめて返却（UI 即時反映用）

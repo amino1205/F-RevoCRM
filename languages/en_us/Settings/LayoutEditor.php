@@ -212,7 +212,6 @@ $languageStrings = array(
 	'LBL_RR_COPY_TO'                      => 'Copy to (field on this form)',
 	'LBL_RR_NO_CONDITIONS'                => 'No filter conditions. Click "Add Condition" to add one.',
 	'LBL_RR_NO_MAPPINGS'                  => 'No mappings. Click "Add Mapping" to add one.',
-	'LBL_RR_ENABLED'                      => 'Enabled',
 	'LBL_RR_CONFIGURED'                   => 'Configured',
 	'LBL_RR_UNSET'                        => 'Not configured',
 );
@@ -286,7 +285,6 @@ $jsLanguageStrings = array(
 	'JS_RR_SAVED'                         => 'Settings have been saved',
 	'JS_RR_DUPLICATE'                     => 'This copy-to field is already in use',
 	'JS_RR_UNSAVED_CONFIRM'               => 'You have unsaved changes. Are you sure you want to leave?',
-	'JS_RR_SELECT_REQUIRED'               => 'Please select all required fields',
 	// Value-kind dropdown (referenced by LookupFilter.js via app.vtranslate)
 	'JS_RR_KIND_FIELD'                    => 'Field reference',
 	'JS_RR_KIND_FIXED'                    => 'Fixed value',

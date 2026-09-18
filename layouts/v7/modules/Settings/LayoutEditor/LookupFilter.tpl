@@ -21,9 +21,9 @@
 			{foreach from=$REFERENCE_FIELDS key=FIELD_NAME item=FIELD_MODEL}
 				{assign var=FIELD_RULES value=$REFERENCE_RULES.$FIELD_NAME|default:null}
 				{assign var=FILTER_DATA value=$FIELD_RULES.filter|default:null}
-				{assign var=ENABLED value=false}
+				{* 「設定があれば有効」仕様: ルールが 1 件以上あれば設定済み（有効）として扱う *}
 				{assign var=RULES value=[]}
-				{if $FILTER_DATA}{assign var=ENABLED value=$FILTER_DATA.enabled}{assign var=RULES value=$FILTER_DATA.rules}{/if}
+				{if $FILTER_DATA}{assign var=RULES value=$FILTER_DATA.rules}{/if}
 				{assign var=REF_LIST value=$FIELD_MODEL->getReferenceList()}
 				{assign var=POPUP_MODULE value=''}
 				{if $REF_LIST}{foreach from=$REF_LIST item=RM}{assign var=POPUP_MODULE value=$RM}{/foreach}{/if}
@@ -42,7 +42,7 @@
 					<td class="referenceFieldStatus"
 						data-label-set="{vtranslate('LBL_RR_CONFIGURED', $QUALIFIED_MODULE)|escape:'html'}"
 						data-label-unset="{vtranslate('LBL_RR_UNSET', $QUALIFIED_MODULE)|escape:'html'}">
-						{if $ENABLED and $RULES|@count gt 0}
+						{if $RULES|@count gt 0}
 							<span class="label label-warning">{vtranslate('LBL_RR_CONFIGURED', $QUALIFIED_MODULE)} ({$RULES|@count})</span>
 						{else}
 							<span class="label label-default">{vtranslate('LBL_RR_UNSET', $QUALIFIED_MODULE)}</span>
@@ -52,13 +52,6 @@
 				<tr class="referenceFieldEditor hide" data-field-name="{$FIELD_NAME}">
 					<td colspan="3">
 						<div class="referenceRuleEditorInner">
-							<div class="checkbox referenceRuleEnableRow marginBottom10">
-								<label>
-									<input type="checkbox" class="sectionEnabled" {if $ENABLED}checked{/if} value="1" />
-									{vtranslate('LBL_RR_ENABLED', $QUALIFIED_MODULE)}
-								</label>
-							</div>
-
 						<table class="table conditionTable">
 							<thead><tr>
 								<th>{vtranslate('LBL_RR_POPUP_FIELD', $QUALIFIED_MODULE)}</th>

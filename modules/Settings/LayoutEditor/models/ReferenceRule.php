@@ -38,7 +38,9 @@ class Settings_LayoutEditor_ReferenceRule_Model {
     private static $tablesExistCache = null;
 
     /**
-     * 編集画面ランタイム向けに、有効なルールを Edit.js が読める配列形式で返す。
+     * 編集画面ランタイム向けに、設定済みルールを Edit.js が読める配列形式で返す。
+     * ルールが 1 件以上あるセクションのみが対象（INNER JOIN で自然に絞られる）。
+     * 「設定があれば有効」仕様のため、有効/無効フラグによる絞り込みは行わない。
      * 既存 config.customize.php の構造と互換：
      *   [
      *     ['module' => 'Quotes', 'field' => 'potential_id',
@@ -68,7 +70,7 @@ class Settings_LayoutEditor_ReferenceRule_Model {
                        r.targetfield, r.targetmodule, r.sequence
                 FROM vtiger_reference_rule_section s
                 INNER JOIN vtiger_reference_rule r ON r.section_id = s.section_id
-                WHERE s.rule_type = ? AND s.is_enabled = 1
+                WHERE s.rule_type = ?
                 ORDER BY s.module_name, s.field_name, r.sequence";
         $result = $db->pquery($sql, array($ruleType));
         if (!$result) {
@@ -101,10 +103,13 @@ class Settings_LayoutEditor_ReferenceRule_Model {
 
     /**
      * 設定画面で当該モジュールの全 reference フィールド分のルールをまとめて返す。
-     * 各フィールドに対し filter / auto_set 両方の「セクション + ルール一覧」を含む。
+     * 各フィールドに対し filter / auto_set 両方の「ルール一覧」を含む。
+     *
+     * 「設定があれば有効」仕様のため有効/無効フラグは持たない。ルールが 1 件以上あれば
+     * 設定済み（有効）、0 件なら未設定として UI 側が判定する。
      *
      * @param string $moduleName
-     * @return array  ['field_name' => ['filter' => [...], 'auto_set' => [...]], ...]
+     * @return array  ['field_name' => ['filter' => ['rules' => [...]], 'auto_set' => ['rules' => [...]]], ...]
      */
     public static function loadForSettings($moduleName) {
         if (!self::tablesExist()) {
@@ -112,7 +117,7 @@ class Settings_LayoutEditor_ReferenceRule_Model {
         }
 
         $db = PearDatabase::getInstance();
-        $sql = "SELECT s.section_id, s.field_name, s.rule_type, s.is_enabled,
+        $sql = "SELECT s.section_id, s.field_name, s.rule_type,
                        r.rule_id, r.srcfield, r.srcfield_type, r.fixed_value,
                        r.targetfield, r.targetmodule, r.sequence
                 FROM vtiger_reference_rule_section s
@@ -131,11 +136,10 @@ class Settings_LayoutEditor_ReferenceRule_Model {
 
             if (!isset($bucket[$field])) {
                 $bucket[$field] = array(
-                    self::RULE_TYPE_FILTER   => array('enabled' => false, 'rules' => array()),
-                    self::RULE_TYPE_AUTO_SET => array('enabled' => false, 'rules' => array()),
+                    self::RULE_TYPE_FILTER   => array('rules' => array()),
+                    self::RULE_TYPE_AUTO_SET => array('rules' => array()),
                 );
             }
-            $bucket[$field][$ruleType]['enabled'] = ((int)$row['is_enabled'] === 1);
 
             if (!empty($row['rule_id'])) {
                 $bucket[$field][$ruleType]['rules'][] = array(
@@ -159,19 +163,29 @@ class Settings_LayoutEditor_ReferenceRule_Model {
      * 指定モジュール・フィールド・ルール種別のセクション 1 件を保存する（upsert）。
      * セクション配下の既存ルールは一旦すべて削除し、入力された rules で置き換える。
      *
-     * トランザクション内で実行する。部分失敗時はロールバックして「有効だがルール 0 件」の
+     * 「設定があれば有効」仕様のため有効/無効フラグは持たない。
+     *  - $rules が 1 件以上 → セクションを upsert し、ルールを入れ替える（＝有効）
+     *  - $rules が空       → 既存セクションを配下ルールごと削除する（＝未設定に戻す）
+     *
+     * トランザクション内で実行する。部分失敗時はロールバックして「ルール 0 件」の
      * 孤児セクションが残らないようにする。
      *
      * @param string $moduleName 例: 'Quotes'
      * @param string $fieldName  例: 'potential_id'
      * @param string $ruleType   self::RULE_TYPE_FILTER または self::RULE_TYPE_AUTO_SET
-     * @param bool   $isEnabled  セクションの有効/無効
      * @param array  $rules      各要素 ['srcfield','targetfield','targetmodule'] を持つ配列
      * @throws Exception バリデーション失敗時 / SQL 失敗時
      */
-    public static function saveSection($moduleName, $fieldName, $ruleType, $isEnabled, array $rules) {
+    public static function saveSection($moduleName, $fieldName, $ruleType, array $rules) {
         if (!self::isValidRuleType($ruleType)) {
             throw new Exception('invalid rule_type: ' . $ruleType);
+        }
+
+        // ルールが空 → 設定解除。ルールの内容検証は不要なので validateSection は通さない。
+        // （項目の型が後から変わった等の環境でも、設定の解除だけは常にできるようにする）
+        if (empty($rules)) {
+            self::deleteSection($moduleName, $fieldName, $ruleType);
+            return;
         }
 
         // バリデーション（ruleType で分岐するため種別を渡す）
@@ -186,14 +200,16 @@ class Settings_LayoutEditor_ReferenceRule_Model {
                  WHERE module_name = ? AND field_name = ? AND rule_type = ?",
                 array($moduleName, $fieldName, $ruleType)
             );
+            $existingSectionId = ($db->num_rows($sectionResult) > 0)
+                ? (int)$db->query_result($sectionResult, 0, 'section_id') : null;
 
-            if ($db->num_rows($sectionResult) > 0) {
-                $sectionId = (int)$db->query_result($sectionResult, 0, 'section_id');
+            if ($existingSectionId !== null) {
+                $sectionId = $existingSectionId;
                 $db->pquery(
                     "UPDATE vtiger_reference_rule_section
-                     SET is_enabled = ?, updated_at = NOW()
+                     SET updated_at = NOW()
                      WHERE section_id = ?",
-                    array($isEnabled ? 1 : 0, $sectionId)
+                    array($sectionId)
                 );
                 // 配下ルールは全削除して入れ替え
                 $db->pquery("DELETE FROM vtiger_reference_rule WHERE section_id = ?", array($sectionId));
@@ -201,9 +217,9 @@ class Settings_LayoutEditor_ReferenceRule_Model {
                 $sectionId = $db->getUniqueID('vtiger_reference_rule_section');
                 $db->pquery(
                     "INSERT INTO vtiger_reference_rule_section
-                        (section_id, module_name, field_name, rule_type, is_enabled, updated_at)
-                     VALUES (?, ?, ?, ?, ?, NOW())",
-                    array($sectionId, $moduleName, $fieldName, $ruleType, $isEnabled ? 1 : 0)
+                        (section_id, module_name, field_name, rule_type, updated_at)
+                     VALUES (?, ?, ?, ?, NOW())",
+                    array($sectionId, $moduleName, $fieldName, $ruleType)
                 );
             }
 
@@ -236,6 +252,45 @@ class Settings_LayoutEditor_ReferenceRule_Model {
             // ここで明示的に確認して例外を投げ、CompleteTrans に巻き戻させる。
             if (!$db->database->_transOK) {
                 throw new Exception('SQL error during saveSection (see vtigercrm log)');
+            }
+            $db->database->CompleteTrans();
+        } catch (Exception $e) {
+            $db->database->FailTrans();
+            $db->database->CompleteTrans();
+            throw $e;
+        }
+    }
+
+    /**
+     * 指定モジュール・フィールド・ルール種別のセクションを配下ルールごと削除する（＝未設定に戻す）。
+     * 該当セクションが無い場合は何もしない。
+     *
+     * @param string $moduleName
+     * @param string $fieldName
+     * @param string $ruleType
+     * @throws Exception SQL 失敗時
+     */
+    public static function deleteSection($moduleName, $fieldName, $ruleType) {
+        if (!self::isValidRuleType($ruleType)) {
+            throw new Exception('invalid rule_type: ' . $ruleType);
+        }
+
+        $db = PearDatabase::getInstance();
+        $db->database->StartTrans();
+        try {
+            $sectionResult = $db->pquery(
+                "SELECT section_id FROM vtiger_reference_rule_section
+                 WHERE module_name = ? AND field_name = ? AND rule_type = ?",
+                array($moduleName, $fieldName, $ruleType)
+            );
+            if ($db->num_rows($sectionResult) > 0) {
+                $sectionId = (int)$db->query_result($sectionResult, 0, 'section_id');
+                $db->pquery("DELETE FROM vtiger_reference_rule WHERE section_id = ?", array($sectionId));
+                $db->pquery("DELETE FROM vtiger_reference_rule_section WHERE section_id = ?", array($sectionId));
+            }
+
+            if (!$db->database->_transOK) {
+                throw new Exception('SQL error during deleteSection (see vtigercrm log)');
             }
             $db->database->CompleteTrans();
         } catch (Exception $e) {
